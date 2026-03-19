@@ -1,40 +1,56 @@
-import { create } from "zustand";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
-export interface FilterState {
-  activeTab: string;
-  activeDeal: string;
-  isFilterOpen: boolean;
-  isDiscountFilterOpen: boolean;
-  isTypeFilterOpen: boolean;
-}
+import { ProductFilterValues } from '../types';
 
-interface FilterActions {
+
+interface ProductFilterActions {
   setActiveTab: (tab: string) => void;
   setActiveDeal: (deal: string) => void;
-  setIsFilterOpen: (isOpen: boolean) => void;
-  setIsDiscountFilterOpen: (isOpen: boolean) => void;
-  setIsTypeFilterOpen: (isOpen: boolean) => void;
+  setSortBy: (sortBy: string) => void;
+  setDiscountTypes: (types: string[]) => void;
+  setDiscountPercentages: (percentages: string[]) => void;
+  setPriceRange: (range: [number, number]) => void;
+  setSelectedBrand: (brand: string) => void;
+  setShopTypes: (types: string[]) => void;
+  setRatings: (ratings: string[]) => void;
+  setTotalProducts: (count: number) => void;
   resetFilters: () => void;
 }
 
-const initialState: FilterState = {
-  activeTab: "all",
-  activeDeal: "Từ 1,000đ",
-  isFilterOpen: false,
-  isDiscountFilterOpen: false,
-  isTypeFilterOpen: false,
+const initialFilterValues: ProductFilterValues = {
+  activeTab: 'all',
+  activeDeal: '1000',
+  sortBy: 'relevant',
+  discountTypes: [],
+  discountPercentages: [],
+  priceRange: [69000, 8869000],
+  selectedBrand: 'Samsung',
+  shopTypes: [],
+  ratings: [],
+  totalProducts: 0,
 };
 
-export const useFilterProductStore = create<FilterState & FilterActions>(
-  (set) => ({
-    ...initialState,
-    setActiveTab: (tab) => set({ activeTab: tab }),
-    setActiveDeal: (deal) => set({ activeDeal: deal }),
-    setIsFilterOpen: (isOpen) => set({ isFilterOpen: isOpen }),
-    setIsDiscountFilterOpen: (isOpen) =>
-      set({ isDiscountFilterOpen: isOpen }),
-    setIsTypeFilterOpen: (isOpen) => set({ isTypeFilterOpen: isOpen }),
-    resetFilters: () => set(initialState),
-  })
-);
 
+/**
+ * useFilterProductStore
+ * Responsibility: Track business logic filter values for product listing.
+ */
+export const useFilterProductStore = create<ProductFilterValues & ProductFilterActions>()(
+  devtools((set) => ({
+    ...initialFilterValues,
+
+    setActiveTab: (tab) => set({ activeTab: tab }, false, 'product/setActiveTab'),
+    setActiveDeal: (deal) => set({ activeDeal: deal }, false, 'product/setActiveDeal'),
+    setSortBy: (sortBy) => set({ sortBy }, false, 'product/setSortBy'),
+    setDiscountTypes: (discountTypes) => set({ discountTypes }, false, 'product/setDiscountTypes'),
+    setDiscountPercentages: (discountPercentages) => set({ discountPercentages }, false, 'product/setDiscountPercentages'),
+    setPriceRange: (priceRange) => set({ priceRange }, false, 'product/setPriceRange'),
+    setSelectedBrand: (selectedBrand) => set({ selectedBrand }, false, 'product/setSelectedBrand'),
+    setShopTypes: (shopTypes) => set({ shopTypes }, false, 'product/setShopTypes'),
+    setRatings: (ratings) => set({ ratings }, false, 'product/setRatings'),
+    setTotalProducts: (totalProducts) => set({ totalProducts }, false, 'product/setTotalProducts'),
+    
+    resetFilters: () => set(initialFilterValues, false, 'product/resetFilters'),
+  }))
+);

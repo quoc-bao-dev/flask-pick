@@ -1,34 +1,99 @@
-import { PropsWithChildren } from "react";
-import Header from "./Header";
-import SearchIcon from "../icons/SearchIcon";
-import CameraIcon from "../icons/CameraIcon";
+import { PropsWithChildren } from 'react'
+import Header from './Header'
+import ProductListHeader from '../ui/ProductListHeader'
+import SaleTimeSlots from '@/features/product/components/SaleTimeSlots'
+import FlashSaleDeals from '@/features/product/components/FlashSaleDeals'
+import MobileFilterTriggers from '@/features/product/components/MobileFilterTriggers'
+import ProductFilterModals from '@/features/product/components/ProductFilterModals'
+import FilterSidebar from '@/features/product/components/FilterSidebar'
+import CategoryFilter from '@/features/product/components/CategoryFilter'
 
-const MainLayout = ({ children }: PropsWithChildren) => {
+/**
+ * MainLayout component
+ * Responsibility: Provide the primary application shell, coordinating layout components
+ * like global navigation (Header), page-specific filtering (Sidebar), and mobile triggers.
+ *
+ * This layout is specialized for the Flash Sale product listing experience.
+ *
+ * @param {PropsWithChildren} props - Layout children (typically page content)
+ * @returns {JSX.Element} The rendered global layout
+ */
+export const MainLayout = ({ children }: PropsWithChildren) => {
+  // --- Render Sections ---
+
+  /**
+   * Mobile-specific Navigation/Filter Section (Visible on < lg)
+   */
+  const renderMobileControls = () => (
+    <div className='flex flex-col lg:hidden' aria-label='Mobile filters and deals'>
+      {/* 1. Mobile Deal Selectors (Headless store access) */}
+      <FlashSaleDeals variant='mobile' />
+
+      {/* 2. Mobile Bottom Sheet Triggers */}
+      <MobileFilterTriggers />
+    </div>
+  )
+
+  /**
+   * Desktop Sidebar Section (Visible on >= lg)
+   */
+  const renderSidebar = () => (
+    <aside
+      className='hidden lg:block w-[280px] shrink-0'
+      aria-label='Product quick filters sidebar'
+    >
+      <div className='sticky top-4'>
+        {/* Powerful Desktop Sidebar Filter Container */}
+        <FilterSidebar />
+      </div>
+    </aside>
+  )
+
+  /**
+   * Main Product Listing Frame
+   */
+  const renderMainResults = () => (
+    <main className='flex-1 min-w-0' role='main' id='main-results'>
+      {/* 1. Results Metadata Header (Title, Filtered Count, etc.) */}
+      <div className='mb-6 space-y-4'>
+        {/* Dynamic Header Information */}
+        <ProductListHeader />
+
+        {/* Global Category Horizontal Navigation */}
+        <CategoryFilter />
+      </div>
+
+      {/* 2. Dynamic Results Grid Area */}
+      <section className='w-full'>{children}</section>
+    </main>
+  )
+
   return (
-    <div className="p-3">
+    <div className='container mx-auto p-3 bg-(--color-background-soft) min-h-screen'>
+      {/* 1. Primary Site Navigation (Logo + Search) */}
       <Header />
-      
-      {/* ==== search mobile ==== */}
-      <div className="pt-2">
-        <div className="xl:hidden flex items-center gap-2 rounded-[12px] border-2 border-[var(--color-orange-1)] bg-white px-3 py-2">
-          <SearchIcon />
 
-          <input
-            type="text"
-            placeholder="Tìm kiếm sản phẩm, shop"
-            className="w-full bg-transparent text-[var(--color-gray-4)] placeholder:text-[var(--color-gray-4)] outline-none"
-          />
+      {/* 2. Global Event Context Slots (Shared across all product pages) */}
+      <SaleTimeSlots />
 
-          <div className="flex h-6 w-8 items-center justify-center rounded-md bg-[var(--color-primary-50)]">
-            <CameraIcon />
-          </div>
+      {/* 3. Responsive Filter Management Interface */}
+      {renderMobileControls()}
+
+      {/* 4. Core Page Shell Layout */}
+      <div className='md:pt-6 pb-12' id='main-content'>
+        <div className='flex flex-col lg:flex-row gap-6'>
+          {/* Persistent Sidebar Filter (Desktop) */}
+          {renderSidebar()}
+
+          {/* Search Results Main Column */}
+          {renderMainResults()}
         </div>
       </div>
 
-      {/* Page Content */}
-      {children}
+      {/* 5. Modal Layer Core (Bottom sheets, Overlays, etc.) */}
+      <ProductFilterModals />
     </div>
-  );
-};
+  )
+}
 
-export default MainLayout;
+export default MainLayout
