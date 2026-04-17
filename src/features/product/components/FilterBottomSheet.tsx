@@ -7,10 +7,14 @@ import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { SparkleIcon } from '@/components/icons/SparkleIcon'
 import { _Image } from '@/core/constant/asset'
 import { formatCurrency } from '@/core/utils/format'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import RangeInput from '@/components/ui/RangeInput'
-import { CloseIcon } from '@/components/icons/CloseIcon'
-
+import Tooltip from '@/components/ui/Tooltip'
+import FilterChip from '@/components/common/FilterChip'
+import FilterSelectButton from '@/components/common/FilterSelectButton'
+import BaseBottomSheet from './BaseBottomSheet'
+import DiscountExplanationModal from './DiscountExplanationModal'
+import { useFilterProductStore } from '../store/filterProductStore'
 
 interface FilterBottomSheetProps {
   isOpen: boolean
@@ -20,7 +24,7 @@ interface FilterBottomSheetProps {
 }
 
 const CATEGORY_OPTIONS = [
-  { id: 'all', label: 'Tất cả', icon: _Image.tool },
+  { id: 'all', label: 'Tất cả', icon: _Image.all },
   { id: 'balo', label: 'Balo & Túi ví nam', icon: _Image.balo },
   { id: 'pet', label: 'Chăm sóc thú cưng', icon: _Image.snack },
   { id: 'women-shoes', label: 'Giày dép nữ', icon: _Image.shose },
@@ -50,26 +54,103 @@ const BRAND_OPTIONS = [
 ]
 
 const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSheetProps) => {
-  const [sortBy, setSortBy] = useState('relevant')
-  const [discountTypes, setDiscountTypes] = useState<string[]>([])
-  const [discountPercentages, setDiscountPercentages] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState<[number, number]>([69000, 8869000])
+  const {
+    sortBy,
+    setSortBy,
+    discountTypes,
+    setDiscountTypes,
+    discountPercentages,
+    setDiscountPercentages,
+    priceRange,
+    setPriceRange,
+    shopTypes,
+    setShopTypes,
+    selectedBrand,
+    setSelectedBrand,
+    ratings,
+    setRatings,
+    resetFilters,
+  } = useFilterProductStore()
+
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [categorySearch, setCategorySearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [isBrandOpen, setIsBrandOpen] = useState(false)
   const [brandSearch, setBrandSearch] = useState('')
-  const [selectedBrand, setSelectedBrand] = useState('Samsung')
+  const [isDiscountInfoOpen, setIsDiscountInfoOpen] = useState(false)
+
+  // Refs for height transition
+  const mainRef = useRef<HTMLDivElement>(null)
+  const categoryRef = useRef<HTMLDivElement>(null)
+  const brandRef = useRef<HTMLDivElement>(null)
+  const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto')
+
+  useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => {
+        setIsCategoryOpen(false)
+        setIsBrandOpen(false)
+        setCategorySearch('')
+        setBrandSearch('')
+        setContainerHeight('auto')
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+
+    let activeRef = mainRef
+    if (isCategoryOpen) activeRef = categoryRef
+    else if (isBrandOpen) activeRef = brandRef
+
+    if (activeRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerHeight(entry.target.scrollHeight)
+        }
+      })
+      observer.observe(activeRef.current)
+      return () => observer.disconnect()
+    }
+  }, [
+    isOpen,
+    isCategoryOpen,
+    isBrandOpen,
+    discountTypes,
+    discountPercentages,
+    shopTypes,
+    ratings,
+    sortBy,
+    priceRange,
+    categorySearch,
+    brandSearch,
+  ])
+
+  const toggleShopType = (type: string) => {
+    setShopTypes(
+      shopTypes.includes(type) ? shopTypes.filter((t) => t !== type) : [...shopTypes, type],
+    )
+  }
 
   const toggleDiscountType = (type: string) => {
-    setDiscountTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    setDiscountTypes(
+      discountTypes.includes(type)
+        ? discountTypes.filter((t) => t !== type)
+        : [...discountTypes, type],
     )
   }
 
   const toggleDiscountPercentage = (percent: string) => {
-    setDiscountPercentages((prev) =>
-      prev.includes(percent) ? prev.filter((p) => p !== percent) : [...prev, percent],
+    setDiscountPercentages(
+      discountPercentages.includes(percent)
+        ? discountPercentages.filter((p) => p !== percent)
+        : [...discountPercentages, percent],
+    )
+  }
+
+  const toggleRating = (ratingStr: string) => {
+    setRatings(
+      ratings.includes(ratingStr)
+        ? ratings.filter((r) => r !== ratingStr)
+        : [...ratings, ratingStr],
     )
   }
 
@@ -82,347 +163,405 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
 
   const formatPrice = (value: number) => formatCurrency(value)
 
-
   const handleMinInputChange = (value: string) => {
-    setPriceRange(([_, max]) => {
-      const nextMin = clamp(parseInputNumber(value), 0, max)
-      return [nextMin, max]
-    })
+    const nextMin = clamp(parseInputNumber(value), 0, priceRange[1])
+    setPriceRange([nextMin, priceRange[1]])
   }
 
   const handleMaxInputChange = (value: string) => {
-    setPriceRange(([min, _]) => {
-      const nextMax = clamp(parseInputNumber(value), min, 10000000)
-      return [min, nextMax]
-    })
+    const nextMax = clamp(parseInputNumber(value), priceRange[0], 10000000)
+    setPriceRange([priceRange[0], nextMax])
   }
 
-  // lock background scroll when sheet is open
-  useEffect(() => {
-    if (!isOpen) return
-    const original = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = original
-    }
-  }, [isOpen])
+  const SectionTitle = ({ title }: { title: string }) => (
+    <h3 className='text-[14px] leading-[28px] tracking-normal text-(--color-gray-2) mb-3 uppercase'>
+      {title}
+    </h3>
+  )
 
-  if (!isOpen) return null
+  const PriceDisplayInput = ({
+    value,
+    onChange,
+    placeholder,
+  }: {
+    value: number
+    onChange: (val: string) => void
+    placeholder: string
+  }) => (
+    <div className='relative flex border border-(--color-border-1) rounded-[10px] bg-white transition-shadow focus-within:shadow-sm overflow-hidden'>
+      <div className='px-3 flex items-center bg-[#F7F9FB] border-r border-(--color-border-1) text-(--color-gray-2) text-[14px] font-medium pointer-events-none'>
+        ₫
+      </div>
+      <input
+        type='text'
+        inputMode='numeric'
+        value={formatCurrency(value)}
+        onChange={(e) => onChange(e.target.value)}
+        className='flex-1 w-full min-w-0 px-3 py-2 text-[14px] font-medium text-(--color-text-strong) outline-none'
+        placeholder={placeholder}
+      />
+    </div>
+  )
 
   return (
     <>
-      {/* Backdrop */}
-      <div className='fixed inset-0 bg-black/50 z-40 animate-in fade-in' onClick={onClose} />
-
-      {/* Bottom Sheet */}
-      <div className='fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-lg animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto'>
-        <div className='flex items-center justify-center'>
-          <div className='py-1 w-[100px] bg-gray-1 rounded-full h-px mt-4'></div>
-        </div>
-        {/* Header */}
-        <div className='sticky top-0 bg-white border-b border-(--color-border-1) px-4 py-4 flex items-center justify-between z-10'>
-          <h2 className='text-[20px] font-bold text-(--color-text-strong)'>Bộ lọc</h2>
-          <button
-            onClick={onClose}
-            className='w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors'
-            aria-label='Close'
-            title='Đóng'
-          >
-            <CloseIcon size={24} />
-          </button>
-
-        </div>
-
-        {/* Content */}
-        <div className='relative px-4 py-4 space-y-6 overflow-x-hidden max-w-full'>
-          {/* Sắp xếp theo */}
-          <div>
-            <h3 className='text-[14px] font-semibold text-(--color-text-strong) mb-3 uppercase'>
-              SẮP XẾP THEO
-            </h3>
-            <div className='flex flex-wrap gap-2'>
-              {[
-                { key: 'relevant', label: 'Liên quan' },
-                { key: 'newest', label: 'Mới nhất' },
-                { key: 'bestselling', label: 'Bán chạy' },
-              ].map((option) => (
-                <button
-                  key={option.key}
-                  onClick={() => setSortBy(option.key)}
-                  className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-colors ${
-                    sortBy === option.key
-                      ? 'bg-[var(--color-orange-1)] text-white'
-                      : 'bg-white border border-(--color-border-1) text-(--color-text-strong)'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Loại giảm giá */}
-          <div>
-            <h3 className='text-[14px] font-semibold text-(--color-text-strong) mb-3 uppercase'>
-              LOẠI GIẢM GIÁ
-            </h3>
-            <div className='space-y-3'>
-              {[
-                {
-                  key: 'cheaper',
-                  label: 'Rẻ hơn lịch sử',
-                  count: 69,
-                  icon: <SparkleIcon className='h-4 w-4 text-white' />,
-                },
-                {
-                  key: 'stable',
-                  label: 'Giá không đổi',
-                  count: 69,
-                  icon: <BalanceIcon className='h-4 w-4 text-white' />,
-                },
-              ].map((option) => (
-                <label
-                  key={option.key}
-                  className='flex items-center justify-between cursor-pointer'
-                >
-                  <div className='flex items-center gap-2'>
-                    {option.icon}
-                    <span className='text-[14px] text-(--color-text-strong)'>
-                      {option.label}
-                    </span>
-                    <span className='text-[14px] text-gray-3'>({option.count})</span>
-                  </div>
-                  <input
-                    type='checkbox'
-                    checked={discountTypes.includes(option.key)}
-                    onChange={() => toggleDiscountType(option.key)}
-                    className='w-5 h-5 rounded border-(--color-border-1) accent-[var(--color-orange-1)] focus:ring-[var(--color-orange-1)]'
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* % giảm giá */}
-          <div>
-            <h3 className='text-[14px] font-semibold text-(--color-text-strong) mb-3 uppercase'>
-              % GIẢM GIÁ
-            </h3>
-            <div className='space-y-3'>
-              {[
-                { key: 'over50', label: 'Giảm sốc (Trên 50%)', count: 69 },
-                {
-                  key: '30-50',
-                  label: 'Giảm sâu (30% - 50%)',
-                  count: 69,
-                },
-                {
-                  key: '10-30',
-                  label: 'Giảm vừa (10% - 30%)',
-                  count: 69,
-                },
-                { key: 'under10', label: 'Giảm ít (Dưới 10%)', count: 69 },
-              ].map((option) => (
-                <label
-                  key={option.key}
-                  className='flex items-center justify-between cursor-pointer'
-                >
-                  <div className='flex items-center gap-2'>
-                    <span className='text-[14px] text-(--color-text-strong)'>
-                      {option.label}
-                    </span>
-                    <span className='text-[14px] text-gray-3'>({option.count})</span>
-                  </div>
-                  <input
-                    type='checkbox'
-                    checked={discountPercentages.includes(option.key)}
-                    onChange={() => toggleDiscountPercentage(option.key)}
-                    className='w-5 h-5 rounded border-(--color-border-1) accent-(--color-orange-1) focus:ring-(--color-orange-1)'
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Khoảng giá */}
-          <div>
-            <h3 className='text-[14px] font-semibold text-(--color-text-strong) mb-3 uppercase'>
-              KHOẢNG GIÁ
-            </h3>
-            <div className='space-y-4'>
-              {/* Slider */}
-              <RangeInput
-                min={0}
-                max={10000000}
-                step={1000}
-                value={priceRange}
-                onChange={setPriceRange}
-              />
-
-              {/* Input fields */}
-              <div className='flex gap-3'>
-                <div className='flex-1'>
-                  <label className='text-[12px] text-gray-3 mb-1 block'>Từ</label>
-                  <input
-                    type='text'
-                    inputMode='numeric'
-                    value={formatPrice(priceRange[0])}
-                    onChange={(e) => handleMinInputChange(e.target.value)}
-                    className='w-full px-3 py-2 border border-(--color-border-1) rounded-lg text-[14px] focus:outline-none focus:border-[var(--color-orange-1)]'
-                    placeholder='₫'
-                  />
-                </div>
-                <div className='flex-1'>
-                  <label className='text-[12px] text-gray-3 mb-1 block'>Đến</label>
-                  <input
-                    type='text'
-                    inputMode='numeric'
-                    value={formatPrice(priceRange[1])}
-                    onChange={(e) => handleMaxInputChange(e.target.value)}
-                    className='w-full px-3 py-2 border border-(--color-border-1) rounded-lg text-[14px] focus:outline-none focus:border-(--color-orange-1)'
-                    placeholder='₫'
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* === danh mục === */}
-          <div className='my-2 h-px bg-gray-1'></div>
-          <div className='pt-2'>
-            <h2 className='text-sm text-gray-2 uppercase'>Danh Mục</h2>
+      <BaseBottomSheet
+        isOpen={isOpen}
+        onClose={onClose}
+        title='Bộ lọc'
+        footer={
+          <>
             <button
-              type='button'
-              onClick={() => setIsCategoryOpen(true)}
-              className='w-full mt-2 py-2 px-3 rounded-lg bg-gray-1 text-gray-2 flex gap-2 items-center justify-between text-left'
+              onClick={() => {
+                resetFilters()
+                onReset()
+              }}
+              className='flex-1 px-4 py-3 border border-(--color-border-1) rounded-lg text-[14px] font-semibold text-(--color-text-strong) hover:bg-gray-50 transition-colors'
             >
-              <div className='flex gap-2 items-center'>
-                <CategoryIcon />
-                <p className=' text-sm '>
-                  {CATEGORY_OPTIONS.find((c) => c.id === selectedCategory)?.label ||
-                    'Chọn danh mục'}
-                </p>
-              </div>
-
-              <div className=''>
-                <ChevronRightIcon />
-              </div>
+              Thiết lập lại
             </button>
-          </div>
-
-          {/* Category Drawer */}
-          <div className=''>
-            <div
-              className={`absolute inset-0 bg-white z-20 transition-transform duration-300 px-1 py-2 overflow-y-auto ${
-                isCategoryOpen ? 'translate-x-0' : 'translate-x-full'
-              }`}
+            <button
+              onClick={onApply}
+              className='flex-1 px-4 py-3 bg-(--color-orange-1) rounded-lg text-[14px] font-semibold text-white hover:opacity-90 transition-opacity'
             >
-              <div className='flex items-center gap-3 px-3 py-3'>
+              Áp dụng
+            </button>
+          </>
+        }
+      >
+        <div
+          className='relative overflow-hidden w-full transition-[height] duration-300 ease-out flex flex-col'
+          style={{ height: containerHeight === 'auto' ? 'auto' : `${containerHeight}px` }}
+        >
+          {/* === MAIN CONTENT === */}
+          <div
+            ref={mainRef}
+            className={`w-full transition-transform duration-300 ease-in-out shrink-0 ${
+              isCategoryOpen || isBrandOpen
+                ? 'absolute top-0 opacity-0 -translate-x-full pointer-events-none'
+                : 'relative opacity-100 translate-x-0'
+            }`}
+          >
+            <div className='space-y-6 pb-4'>
+              {/* Sắp xếp theo */}
+              <section aria-labelledby='sort-label'>
+                <SectionTitle title='Sắp xếp theo' />
+                <div className='flex flex-wrap gap-2 pt-1 font-medium'>
+                  {[
+                    { key: 'relevant', label: 'Liên quan' },
+                    { key: 'newest', label: 'Mới nhất' },
+                    { key: 'bestselling', label: 'Bán chạy' },
+                  ].map((option) => (
+                    <FilterChip
+                      key={option.key}
+                      label={option.label}
+                      isActive={sortBy === option.key}
+                      onClick={() => setSortBy(option.key)}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Loại giảm giá */}
+              <section>
+                <div className='flex justify-between'>
+                  <SectionTitle title='Loại giảm giá' />
+
+                  <button
+                    type='button'
+                    onClick={() => setIsDiscountInfoOpen(true)}
+                    className='p-1 -mr-1 -mt-1 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none'
+                    aria-label='Xem thông tin loại giảm giá'
+                  >
+                    <svg
+                      width='24'
+                      height='24'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        d='M12 9H12.01M11 12H12V16H13M3 12C3 13.1819 3.23279 14.3522 3.68508 15.4442C4.13738 16.5361 4.80031 17.5282 5.63604 18.364C6.47177 19.1997 7.46392 19.8626 8.55585 20.3149C9.64778 20.7672 10.8181 21 12 21C13.1819 21 14.3522 20.7672 15.4442 20.3149C16.5361 19.8626 17.5282 19.1997 18.364 18.364C19.1997 17.5282 19.8626 16.5361 20.3149 15.4442C20.7672 14.3522 21 13.1819 21 12C21 9.61305 20.0518 7.32387 18.364 5.63604C16.6761 3.94821 14.3869 3 12 3C9.61305 3 7.32387 3.94821 5.63604 5.63604C3.94821 7.32387 3 9.61305 3 12Z'
+                        stroke='#596881'
+                        strokeWidth='2'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className='space-y-3'>
+                  {[
+                    {
+                      key: 'cheaper',
+                      label: 'Rẻ hơn lịch sử',
+                      tooltip: 'Giá thấp hơn so với trung bình 30 ngày qua',
+                      count: 69,
+                      icon: <SparkleIcon className='h-4 w-4' />,
+                    },
+                    {
+                      key: 'stable',
+                      label: 'Giá không đổi',
+                      tooltip: 'Sản phẩm duy trì mức giá ổn định',
+                      count: 69,
+                      icon: <BalanceIcon className='h-4 w-4' />,
+                    },
+                  ].map((option) => (
+                    <label
+                      key={option.key}
+                      className='flex items-center justify-between cursor-pointer group'
+                    >
+                      <div className='flex items-center gap-2'>
+                        <Tooltip content={option.tooltip}>
+                          <span className='text-[14px] font-medium text-(--color-text-strong) underline decoration-wavy decoration-[#8796AF]/50 decoration-1 underline-offset-4 group-hover:text-(--color-orange-1) transition-colors'>
+                            {option.label}
+                          </span>
+                        </Tooltip>
+                        <span className='text-[13px] text-(--color-gray-2) font-medium'>
+                          ({option.count})
+                        </span>
+                      </div>
+                      <input
+                        type='checkbox'
+                        checked={discountTypes.includes(option.key)}
+                        onChange={() => toggleDiscountType(option.key)}
+                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              {/* % giảm giá */}
+              <section>
+                <SectionTitle title='% GIẢM GIÁ' />
+                <div className='space-y-3'>
+                  {[
+                    { key: 'over50', label: 'Giảm sốc (Trên 50%)', count: 69 },
+                    { key: '30-50', label: 'Giảm sâu (30% - 50%)', count: 69 },
+                    { key: '10-30', label: 'Giảm vừa (10% - 30%)', count: 69 },
+                    { key: 'under10', label: 'Giảm ít (Dưới 10%)', count: 69 },
+                  ].map((option) => (
+                    <label
+                      key={option.key}
+                      className='flex items-center justify-between cursor-pointer group'
+                    >
+                      <div className='flex items-center gap-2'>
+                        <span className='text-[14px] font-medium text-(--color-text-strong) group-hover:text-(--color-orange-1) transition-colors'>
+                          {option.label}
+                        </span>
+                        <span className='text-[13px] text-(--color-gray-2) font-medium'>
+                          ({option.count})
+                        </span>
+                      </div>
+                      <input
+                        type='checkbox'
+                        checked={discountPercentages.includes(option.key)}
+                        onChange={() => toggleDiscountPercentage(option.key)}
+                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              {/* Khoảng giá */}
+              <section>
+                <SectionTitle title='Khoảng giá' />
+                <div className='space-y-4 pt-2'>
+                  <RangeInput
+                    min={0}
+                    max={10000000}
+                    step={1000}
+                    value={priceRange}
+                    onChange={setPriceRange}
+                  />
+
+                  <div className='flex items-center'>
+                    <div className='flex-1 min-w-0'>
+                      <PriceDisplayInput
+                        value={priceRange[0]}
+                        placeholder='Tối thiểu'
+                        onChange={(val) => {
+                          const numeric = Number(val.replace(/[^\d]/g, ''))
+                          setPriceRange([Math.min(numeric, priceRange[1]), priceRange[1]])
+                        }}
+                      />
+                    </div>
+                    <div className='w-5 shrink-0 border-t-2 border-dashed border-(--color-border-1)'></div>
+                    <div className='flex-1 min-w-0'>
+                      <PriceDisplayInput
+                        value={priceRange[1]}
+                        placeholder='Tối đa'
+                        onChange={(val) => {
+                          const numeric = Number(val.replace(/[^\d]/g, ''))
+                          setPriceRange([priceRange[0], Math.min(numeric, 10000000)])
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className='my-2 h-px bg-(--color-border-1)'></div>
+
+              {/* Shop */}
+              <section>
+                <SectionTitle title='Shop' />
+                <div className='space-y-3 font-medium'>
+                  {[
+                    { key: 'mall', label: 'Shop Mall', count: 69 },
+                    { key: 'favorite', label: 'Shop Yêu thích', count: 69 },
+                    { key: 'favorite-plus', label: 'Shop Yêu thích +', count: 69 },
+                  ].map((option) => (
+                    <label
+                      key={option.key}
+                      className='flex items-center justify-between cursor-pointer group'
+                    >
+                      <div className='flex items-center gap-2'>
+                        <span className='text-[14px] font-medium text-(--color-text-strong) group-hover:text-(--color-orange-1) transition-colors'>
+                          {option.label}
+                        </span>
+                        <span className='text-[13px] text-(--color-gray-2) font-medium'>
+                          ({option.count})
+                        </span>
+                      </div>
+                      <input
+                        type='checkbox'
+                        checked={shopTypes.includes(option.key)}
+                        onChange={() => toggleShopType(option.key)}
+                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <div className='my-2 h-px bg-(--color-border-1)'></div>
+
+              {/* === danh mục === */}
+              <section>
+                <SectionTitle title='Danh Mục' />
                 <button
                   type='button'
-                  onClick={() => setIsCategoryOpen(false)}
-                  className='w-9 h-9 flex items-center justify-center rounded-full border border-(--color-border-1) bg-white text-gray-600'
+                  onClick={() => setIsCategoryOpen(true)}
+                  className='w-full py-2 px-3 rounded-[10px] bg-[#F7F9FB] flex items-center justify-between text-left transition-colors hover:bg-gray-100'
                 >
-                  <svg
-                    width='18'
-                    height='18'
-                    viewBox='0 0 18 18'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M11.25 14.25L6.75 9L11.25 3.75'
-                      stroke='currentColor'
-                      strokeWidth='1.73333'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                  </svg>
+                  <div className='flex items-center gap-2 flex-1'>
+                    <CategoryIcon className='text-gray-2' />
+                    <span className='text-[14px] font-medium text-gray-2'>
+                      {CATEGORY_OPTIONS.find((c) => c.id === selectedCategory)?.label ||
+                        'Chọn danh mục'}
+                    </span>
+                  </div>
+                  <div className='text-gray-2'>
+                    <ChevronRightIcon />
+                  </div>
                 </button>
-                <h2 className='text-sm font-semibold text-(--color-text-strong) uppercase'>
-                  Danh mục
-                </h2>
-              </div>
+              </section>
 
-              <div className='px-3'>
-                <div className='flex items-center gap-2 border-2 border-[var(--color-orange-1)] rounded-lg px-3 py-2'>
-                  <svg
-                    width='18'
-                    height='18'
-                    viewBox='0 0 18 18'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                    className='text-gray-400'
-                  >
-                    <path
-                      d='M11.8125 11.8125L15 15'
-                      stroke='currentColor'
-                      strokeWidth='1.4'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path
-                      d='M12.75 7.875C12.75 10.6005 10.6005 12.75 7.875 12.75C5.1495 12.75 3 10.6005 3 7.875C3 5.1495 5.1495 3 7.875 3C10.6005 3 12.75 5.1495 12.75 7.875Z'
-                      stroke='currentColor'
-                      strokeWidth='1.4'
-                    />
-                  </svg>
-                  <input
-                    value={categorySearch}
-                    onChange={(e) => setCategorySearch(e.target.value)}
-                    placeholder='Tìm kiếm danh mục'
-                    className='flex-1 text-[14px] outline-none placeholder:text-gray-3'
-                  />
-                </div>
+              {/* === brand === */}
+              <section>
+                <SectionTitle title='Thương hiệu' />
+                <button
+                  type='button'
+                  onClick={() => setIsBrandOpen(true)}
+                  className='w-full py-2 px-3 rounded-[10px] bg-[#F7F9FB] flex items-center justify-between text-left transition-colors hover:bg-gray-100'
+                >
+                  <div className='flex items-center gap-2 flex-1'>
+                    <svg
+                      width='18'
+                      height='18'
+                      viewBox='0 0 18 18'
+                      fill='none'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        d='M3.74986 5.39986C3.74986 4.96225 3.9237 4.54257 4.23313 4.23313C4.54257 3.9237 4.96225 3.74986 5.39986 3.74986H6.14986C6.58553 3.74961 7.00342 3.57706 7.31236 3.26986L7.83736 2.74486C7.99069 2.59066 8.173 2.46829 8.37379 2.38479C8.57458 2.30129 8.7899 2.2583 9.00736 2.2583C9.22482 2.2583 9.44013 2.30129 9.64093 2.38479C9.84172 2.46829 10.024 2.59066 10.1774 2.74486L10.7024 3.26986C11.0114 3.57736 11.4299 3.74986 11.8649 3.74986H12.6149C13.0525 3.74986 13.4721 3.9237 13.7816 4.23313C14.091 4.54257 14.2649 4.96225 14.2649 5.39986V6.14986C14.2649 6.58486 14.4374 7.00336 14.7449 7.31236L15.2699 7.83736C15.4241 7.99069 15.5464 8.173 15.6299 8.37379C15.7134 8.57458 15.7564 8.7899 15.7564 9.00736C15.7564 9.22482 15.7134 9.44013 15.6299 9.64093C15.5464 9.84172 15.4241 10.024 15.2699 10.1774L14.7449 10.7024C14.4377 11.0113 14.2651 11.4292 14.2649 11.8649V12.6149C14.2649 13.0525 14.091 13.4721 13.7816 13.7816C13.4721 14.091 13.0525 14.2649 12.6149 14.2649H11.8649C11.4292 14.2651 11.0113 14.4377 10.7024 14.7449L10.1774 15.2699C10.024 15.4241 9.84172 15.5464 9.64093 15.6299C9.44013 15.7134 9.22482 15.7564 9.00736 15.7564C8.7899 15.7564 8.57458 15.7134 8.37379 15.6299C8.173 15.5464 7.99069 15.4241 7.83736 15.2699L7.31236 14.7449C7.00342 14.4377 6.58553 14.2651 6.14986 14.2649H5.39986C4.96225 14.2649 4.54257 14.091 4.23313 13.7816C3.9237 13.4721 3.74986 13.0525 3.74986 12.6149V11.8649C3.74961 11.4292 3.57706 11.0113 3.26986 10.7024L2.74486 10.1774C2.59066 10.024 2.46829 9.84172 2.38479 9.64093C2.30129 9.44013 2.2583 9.22482 2.2583 9.00736C2.2583 8.7899 2.30129 8.57458 2.38479 8.37379C2.46829 8.173 2.59066 7.99069 2.74486 7.83736L3.26986 7.31236C3.57706 7.00342 3.74961 6.58553 3.74986 6.14986V5.39986Z'
+                        stroke='#596881'
+                        strokeWidth='1.73333'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                      />
+                    </svg>
+                    <span className='text-[14px] font-medium text-gray-2'>
+                      {selectedBrand || 'Chọn thương hiệu'}
+                    </span>
+                  </div>
+                  <div className='text-gray-2'>
+                    <ChevronRightIcon />
+                  </div>
+                </button>
+              </section>
 
-                <div className='mt-4 grid grid-cols-2 gap-3'>
-                  {CATEGORY_OPTIONS.filter((c) =>
-                    c.label.toLowerCase().includes(categorySearch.toLowerCase()),
-                  ).map((category) => {
-                    const isActive = category.id === selectedCategory
-                    return (
-                      <button
-                        key={category.id}
-                        type='button'
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`flex items-center gap-2 rounded-full px-3 py-2 border transition-colors ${
-                          isActive
-                            ? 'border-(--color-orange-1) bg-white shadow-sm'
-                            : 'border-(--color-border-1) bg-white'
-                        }`}
-                      >
-                        <span className='h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden'>
-                          <img
-                            src={category.icon}
-                            alt={category.label}
-                            className='h-6 w-6 object-contain'
-                          />
-                        </span>
-                        <span className='text-[13px] text-(--color-text-strong) text-left'>
-                          {category.label}
-                        </span>
-                        {isActive && (
-                          <span className='ml-auto h-5 w-5 rounded-full bg-(--color-orange-1) text-white flex items-center justify-center text-[12px]'>
-                            ✓
+              <div className='my-2 h-px bg-(--color-border-1)'></div>
+
+              {/* Đánh giá */}
+              <section>
+                <SectionTitle title='Đánh giá' />
+                <div className='space-y-3 font-medium'>
+                  {[
+                    { key: '5.0', value: 5, label: '5.0', count: 69 },
+                    { key: '4.0+', value: 4, label: '4.0', count: 69 },
+                    { key: '3.0+', value: 3, label: '3.0', count: 69 },
+                    { key: '2.0+', value: 2, label: '2.0', count: 69 },
+                    { key: '1.0+', value: 1, label: '1.0', count: 69 },
+                  ].map((option) => (
+                    <label
+                      key={option.key}
+                      className='flex items-center justify-between cursor-pointer group'
+                    >
+                      <div className='flex items-center gap-2'>
+                        <div className='flex text-[#FFB800]'>
+                          {[...Array(5)].map((_, i) => (
+                            <svg
+                              key={i}
+                              width='14'
+                              height='14'
+                              viewBox='0 0 14 14'
+                              fill='none'
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='mr-0.5'
+                            >
+                              <path
+                                d='M7 0L9.163 4.383L14 5.086L10.5 8.497L11.326 13.313L7 11.037L2.674 13.313L3.5 8.497L0 5.086L4.837 4.383L7 0Z'
+                                fill={i < option.value ? 'currentColor' : '#E5E7EB'}
+                              />
+                            </svg>
+                          ))}
+                        </div>
+                        {option.value < 5 && (
+                          <span className='text-[14px] text-(--color-text-strong) group-hover:text-(--color-orange-1) transition-colors'>
+                            trở lên
                           </span>
                         )}
-                      </button>
-                    )
-                  })}
+                        <span className='text-[13px] text-(--color-gray-2)'>({option.count})</span>
+                      </div>
+                      <input
+                        type='checkbox'
+                        checked={ratings.includes(option.key)}
+                        onChange={() => toggleRating(option.key)}
+                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
+                      />
+                    </label>
+                  ))}
                 </div>
-              </div>
+              </section>
             </div>
           </div>
 
-          {/* === brand === */}
-          <div className='pt-2'>
-            <h2 className='text-sm text-gray-2 uppercase'>thương hiệu</h2>
-            <button
-              type='button'
-              onClick={() => setIsBrandOpen(true)}
-              className='w-full mt-2 py-2 px-3 rounded-lg bg-gray-1 text-gray-2 flex gap-2 items-center justify-between text-left'
-            >
-              <div className='flex gap-2 items-center'>
+          {/* === CATEGORY DRAWER === */}
+          <div
+            ref={categoryRef}
+            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${
+              isCategoryOpen
+                ? 'relative opacity-100 translate-x-0'
+                : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
+            }`}
+          >
+            <div className='flex items-center gap-3 py-3'>
+              <button type='button' onClick={() => setIsCategoryOpen(false)} className=''>
                 <svg
                   width='18'
                   height='18'
@@ -431,33 +570,84 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                   xmlns='http://www.w3.org/2000/svg'
                 >
                   <path
-                    d='M3.74986 5.39986C3.74986 4.96225 3.9237 4.54257 4.23313 4.23313C4.54257 3.9237 4.96225 3.74986 5.39986 3.74986H6.14986C6.58553 3.74961 7.00342 3.57706 7.31236 3.26986L7.83736 2.74486C7.99069 2.59066 8.173 2.46829 8.37379 2.38479C8.57458 2.30129 8.7899 2.2583 9.00736 2.2583C9.22482 2.2583 9.44013 2.30129 9.64093 2.38479C9.84172 2.46829 10.024 2.59066 10.1774 2.74486L10.7024 3.26986C11.0114 3.57736 11.4299 3.74986 11.8649 3.74986H12.6149C13.0525 3.74986 13.4721 3.9237 13.7816 4.23313C14.091 4.54257 14.2649 4.96225 14.2649 5.39986V6.14986C14.2649 6.58486 14.4374 7.00336 14.7449 7.31236L15.2699 7.83736C15.4241 7.99069 15.5464 8.173 15.6299 8.37379C15.7134 8.57458 15.7564 8.7899 15.7564 9.00736C15.7564 9.22482 15.7134 9.44013 15.6299 9.64093C15.5464 9.84172 15.4241 10.024 15.2699 10.1774L14.7449 10.7024C14.4377 11.0113 14.2651 11.4292 14.2649 11.8649V12.6149C14.2649 13.0525 14.091 13.4721 13.7816 13.7816C13.4721 14.091 13.0525 14.2649 12.6149 14.2649H11.8649C11.4292 14.2651 11.0113 14.4377 10.7024 14.7449L10.1774 15.2699C10.024 15.4241 9.84172 15.5464 9.64093 15.6299C9.44013 15.7134 9.22482 15.7564 9.00736 15.7564C8.7899 15.7564 8.57458 15.7134 8.37379 15.6299C8.173 15.5464 7.99069 15.4241 7.83736 15.2699L7.31236 14.7449C7.00342 14.4377 6.58553 14.2651 6.14986 14.2649H5.39986C4.96225 14.2649 4.54257 14.091 4.23313 13.7816C3.9237 13.4721 3.74986 13.0525 3.74986 12.6149V11.8649C3.74961 11.4292 3.57706 11.0113 3.26986 10.7024L2.74486 10.1774C2.59066 10.024 2.46829 9.84172 2.38479 9.64093C2.30129 9.44013 2.2583 9.22482 2.2583 9.00736C2.2583 8.7899 2.30129 8.57458 2.38479 8.37379C2.46829 8.173 2.59066 7.99069 2.74486 7.83736L3.26986 7.31236C3.57706 7.00342 3.74961 6.58553 3.74986 6.14986V5.39986Z'
-                    stroke='#596881'
+                    d='M11.25 14.25L6.75 9L11.25 3.75'
+                    stroke='currentColor'
                     strokeWidth='1.73333'
                     strokeLinecap='round'
                     strokeLinejoin='round'
                   />
                 </svg>
-                <p className=' text-sm '>{selectedBrand || 'Chọn thương hiệu'}</p>
+              </button>
+              <h2 className='text-sm font-semibold text-(--color-text-strong) uppercase'>
+                Danh mục
+              </h2>
+            </div>
+
+            <div className='pb-4'>
+              <div className='flex items-center gap-2 border-2 border-(--color-orange-1) rounded-lg px-3 py-2'>
+                <svg
+                  width='18'
+                  height='18'
+                  viewBox='0 0 18 18'
+                  fill='none'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='text-(--color-gray-3)'
+                >
+                  <path
+                    d='M11.8125 11.8125L15 15'
+                    stroke='currentColor'
+                    strokeWidth='1.4'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                  <path
+                    d='M12.75 7.875C12.75 10.6005 10.6005 12.75 7.875 12.75C5.1495 12.75 3 10.6005 3 7.875C3 5.1495 5.1495 3 7.875 3C10.6005 3 12.75 5.1495 12.75 7.875Z'
+                    stroke='currentColor'
+                    strokeWidth='1.4'
+                  />
+                </svg>
+                <input
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  placeholder='Tìm kiếm danh mục'
+                  className='flex-1 text-[14px] outline-none placeholder:text-(--color-gray-3)'
+                />
               </div>
 
-              <div className=''>
-                <ChevronRightIcon />
+              <div className='mt-4 flex flex-wrap gap-3 pb-6'>
+                {CATEGORY_OPTIONS.filter((c) =>
+                  c.label.toLowerCase().includes(categorySearch.toLowerCase()),
+                ).map((category) => {
+                  const isActive = category.id === selectedCategory
+
+                  return (
+                    <FilterSelectButton
+                      key={category.id}
+                      icon={category.icon}
+                      label={category.label}
+                      isActive={isActive}
+                      onClick={() => setSelectedCategory(category.id)}
+                    />
+                  )
+                })}
               </div>
-            </button>
+            </div>
           </div>
 
-          {/* Brand Drawer */}
+          {/* === BRAND DRAWER === */}
           <div
-            className={`absolute inset-0 bg-white z-30 transition-transform duration-300 px-1 py-2 overflow-y-auto ${
-              isBrandOpen ? 'translate-x-0' : 'translate-x-full'
+            ref={brandRef}
+            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${
+              isBrandOpen
+                ? 'relative opacity-100 translate-x-0'
+                : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
             }`}
           >
-            <div className='flex items-center gap-3 px-3 py-3'>
+            <div className='flex items-center gap-3 py-3'>
               <button
                 type='button'
                 onClick={() => setIsBrandOpen(false)}
-                className='w-9 h-9 flex items-center justify-center rounded-full border border-(--color-border-1) bg-white text-gray-600'
+                className='w-9 h-9 flex items-center justify-center rounded-full border border-(--color-border-1) bg-white text-(--color-text-strong)'
               >
                 <svg
                   width='18'
@@ -480,7 +670,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
               </h2>
             </div>
 
-            <div className='px-3'>
+            <div className='pb-4'>
               <div className='flex items-center gap-2 border-2 border-(--color-orange-1) rounded-lg px-3 py-2'>
                 <svg
                   width='18'
@@ -488,7 +678,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                   viewBox='0 0 18 18'
                   fill='none'
                   xmlns='http://www.w3.org/2000/svg'
-                  className='text-gray-400'
+                  className='text-(--color-gray-3)'
                 >
                   <path
                     d='M11.8125 11.8125L15 15'
@@ -507,56 +697,35 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                   value={brandSearch}
                   onChange={(e) => setBrandSearch(e.target.value)}
                   placeholder='Tìm kiếm thương hiệu'
-                  className='flex-1 text-[14px] outline-none placeholder:text-gray-3'
+                  className='flex-1 text-[14px] outline-none placeholder:text-(--color-gray-3)'
                 />
               </div>
 
-              <div className='mt-4 grid grid-cols-3 gap-3'>
+              <div className='mt-4 flex flex-wrap gap-3 pb-6'>
                 {BRAND_OPTIONS.filter((b) =>
                   b.toLowerCase().includes(brandSearch.toLowerCase()),
                 ).map((brand) => {
                   const isActive = brand === selectedBrand
                   return (
-                    <button
+                    <FilterSelectButton
                       key={brand}
-                      type='button'
+                      label={brand}
+                      isActive={isActive}
                       onClick={() => setSelectedBrand(brand)}
-                      className={`relative rounded-full px-3 py-2 border text-[13px] transition-colors ${
-                        isActive
-                          ? 'border-(--color-orange-1) text-(--color-text-strong) bg-white'
-                          : 'border-(--color-border-1) text-(--color-text-strong) bg-white'
-                      }`}
-                    >
-                      {brand}
-                      {isActive && (
-                        <span className='absolute -top-2 -right-2 h-5 w-5 rounded-full bg-(--color-orange-1) text-white flex items-center justify-center text-[12px]'>
-                          ✓
-                        </span>
-                      )}
-                    </button>
+                    />
                   )
                 })}
               </div>
             </div>
           </div>
         </div>
+      </BaseBottomSheet>
 
-        {/* Footer */}
-        <div className='sticky bottom-0 bg-white border-t border-(--color-border-1) px-4 py-4 flex gap-3'>
-          <button
-            onClick={onReset}
-            className='flex-1 px-4 py-3 border border-(--color-border-1) rounded-lg text-[14px] font-semibold text-(--color-text-strong) hover:bg-gray-50 transition-colors'
-          >
-            Thiết lập lại
-          </button>
-          <button
-            onClick={onApply}
-            className='flex-1 px-4 py-3 bg-(--color-orange-1) rounded-lg text-[14px] font-semibold text-white hover:opacity-90 transition-opacity'
-          >
-            Áp dụng
-          </button>
-        </div>
-      </div>
+      {/* Render Discount Modal outside BaseBottomSheet to escape styling/z-index traps */}
+      <DiscountExplanationModal
+        isOpen={isDiscountInfoOpen}
+        onClose={() => setIsDiscountInfoOpen(false)}
+      />
     </>
   )
 }

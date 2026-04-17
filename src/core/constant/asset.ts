@@ -17,6 +17,7 @@ export const _Image = {
   tool: '/image/category/tool.png',
   watch: '/image/category/watch.png',
   wash: '/image/category/wash.png',
+  all: '/image/category/all.png',
 
   //   mock
   product: '/mock/product.png',

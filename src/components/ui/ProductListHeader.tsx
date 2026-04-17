@@ -23,13 +23,13 @@ const ProductListHeader = () => {
       <div className='flex items-start justify-between'>
         {/* Title and Product Count */}
         <div className='flex items-center gap-4'>
-          <h1 className='text-[24px] font-bold text-(--color-text-strong) tracking-tight'>
+          <h1 className='text-[24px] font-semibold text-(--color-text-strong) tracking-tight'>
             Danh sách sản phẩm
           </h1>
 
           {/* Dynamic Product Count Badge */}
           <div
-            className='inline-flex items-center px-[8px] py-[5px] text-[12px] font-bold border border-(--color-border-1) rounded-lg bg-white/60 shadow-sm'
+            className='inline-flex items-center px-[8px] py-[5px] text-[12px] font-bold border border-(--color-border-1) rounded-lg bg-white/60'
             aria-label={`${totalProducts} products found`}
           >
             {totalProducts.toLocaleString('vi-VN')}

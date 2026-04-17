@@ -7,6 +7,7 @@ import MobileFilterTriggers from '@/features/product/components/MobileFilterTrig
 import ProductFilterModals from '@/features/product/components/ProductFilterModals'
 import FilterSidebar from '@/features/product/components/FilterSidebar'
 import CategoryFilter from '@/features/product/components/CategoryFilter'
+import MobileSearchBar from '../ui/MobileSearchBar'
 
 /**
  * MainLayout component
@@ -55,7 +56,7 @@ export const MainLayout = ({ children }: PropsWithChildren) => {
   const renderMainResults = () => (
     <main className='flex-1 min-w-0' role='main' id='main-results'>
       {/* 1. Results Metadata Header (Title, Filtered Count, etc.) */}
-      <div className='mb-6 space-y-4'>
+      <div className='mb-3 space-y-4'>
         {/* Dynamic Header Information */}
         <ProductListHeader />
 
@@ -73,11 +74,16 @@ export const MainLayout = ({ children }: PropsWithChildren) => {
       {/* 1. Primary Site Navigation (Logo + Search) */}
       <Header />
 
-      {/* 2. Global Event Context Slots (Shared across all product pages) */}
-      <SaleTimeSlots />
+      {/* Sticky Section for Time Slots and Mobile Filters */}
+      <div className='sticky top-0 z-40 bg-white -mx-3 px-3 pb-2 pt-1'>
+        <MobileSearchBar />
 
-      {/* 3. Responsive Filter Management Interface */}
-      {renderMobileControls()}
+        {/* 2. Global Event Context Slots (Shared across all product pages) */}
+        <SaleTimeSlots />
+
+        {/* 3. Responsive Filter Management Interface */}
+        {renderMobileControls()}
+      </div>
 
       {/* 4. Core Page Shell Layout */}
       <div className='md:pt-6 pb-12' id='main-content'>

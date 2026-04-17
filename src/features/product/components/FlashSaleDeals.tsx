@@ -1,5 +1,6 @@
 'use client'
 
+import FilterChip from '@/components/common/FilterChip'
 import { useFilterProductStore } from '../store/filterProductStore'
 
 /**
@@ -31,7 +32,7 @@ interface FlashSaleDealsProps {
  * FlashSaleDeals component
  * Responsibility: Display and allow selection of different price-based deals for flash sales.
  * Supports both mobile and desktop layouts through the 'variant' prop.
- * 
+ *
  * @param {string} variant - 'mobile' or 'desktop' to adjust layout and styling.
  * @returns {JSX.Element} The rendered component
  */
@@ -48,25 +49,15 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   const renderButtons = () => {
     return DEAL_OPTIONS.map((option) => {
       const isActive = option.value === activeDeal
-      
+
       return (
-        <button
+        <FilterChip
           key={option.value}
-          type='button'
+          label={option.label}
+          isActive={isActive}
           onClick={() => handleDealChange(option.value)}
-          className={`rounded-full border px-3 py-1 text-[16px] font-semibold transition-all whitespace-nowrap cursor-pointer focus:outline-none focus:ring-2 focus:ring-(--color-orange-1) focus:ring-offset-1 ${
-            variant === 'desktop' ? 'border-[1.5px]' : ''
-          } ${
-            isActive
-              ? 'border-(--color-orange-1) bg-(--color-primary-50) text-(--color-orange-1)'
-              : 'border-(--color-border-1) text-(--color-text-strong) hover:border-(--color-border-2)'
-          }`}
-          aria-pressed={isActive}
-          aria-label={`Chọn deal ${option.label}`}
-          title={option.label}
-        >
-          {option.label}
-        </button>
+          variant={variant}
+        />
       )
     })
   }
@@ -78,9 +69,7 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
     return (
       <div className='flex items-center gap-3' aria-label='Flash Sale Deals (Desktop)'>
         <span className='text-[16px] font-medium text-(--color-gray-2) uppercase'>DEAL</span>
-        <div className='flex items-center gap-3'>
-          {renderButtons()}
-        </div>
+        <div className='flex items-center gap-3'>{renderButtons()}</div>
       </div>
     )
   }
@@ -88,9 +77,9 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   // Mobile Component (matches original layout exactly)
   return (
     <nav className='pt-2 lg:hidden' aria-label='Flash Sale Deals'>
-      <div className='flex items-center gap-3 text-[16px] font-semibold text-(--color-gray-2)'>
+      <div className='flex items-center gap-3 text-[16px] font-medium text-(--color-gray-2)'>
         {/* Label */}
-        <span className='uppercase'>DEAL</span>
+        <span className='uppercase text-[16px]'>DEAL</span>
 
         {/* Scrollable Container */}
         <div className='flex-1 min-w-0'>

@@ -16,6 +16,7 @@ export interface Product {
   total: number;
   timeRemaining: string;
   buttonText: string;
+  type: 'sale' | 'notify';
 }
 
 /**

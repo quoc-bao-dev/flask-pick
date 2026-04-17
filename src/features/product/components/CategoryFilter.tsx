@@ -17,7 +17,7 @@ interface CategoryOption {
  * Category options for filtering
  */
 const CATEGORY_OPTIONS: CategoryOption[] = [
-  { id: 'all', label: 'Tất cả', icon: _Image.tool },
+  { id: 'all', label: 'Tất cả', icon: _Image.all },
   { id: 'balo', label: 'Balo & Túi ví nam', icon: _Image.balo },
   { id: 'pet', label: 'Chăm sóc thú cưng', icon: _Image.snack },
   { id: 'women-shoes', label: 'Giày dép nữ', icon: _Image.shose },
@@ -142,7 +142,7 @@ const CategoryFilter = () => {
           )
         })}
         {/* Padding for scroll clearance */}
-        <div className='w-[52px] h-[32px] shrink-0'></div>
+        <div className='w-[4px] h-[32px] shrink-0'></div>
       </div>
 
       {/* Right Gradient Overlay */}

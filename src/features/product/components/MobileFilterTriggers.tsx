@@ -8,9 +8,34 @@ import { useUiProductStore } from '../store/uiProductStore'
 /**
  * MobileFilterTriggers component
  * Responsibility: Display filter trigger buttons for mobile layout.
- * 
+ *
  * @returns {JSX.Element} The rendered component
  */
+interface FilterTriggerButtonProps {
+  label: string
+  onClick: () => void
+  icon: React.ElementType
+  ariaLabel: string
+}
+
+const FilterTriggerButton = ({
+  label,
+  onClick,
+  icon: Icon,
+  ariaLabel,
+}: FilterTriggerButtonProps) => (
+  <button
+    type='button'
+    onClick={onClick}
+    className='flex items-center gap-2 rounded-[10px] bg-white border border-[#DEE4EE] px-[12px] py-[6px] text-[12px] font-medium text-gray-2 whitespace-nowrap transition-colors hover:bg-gray-50'
+    aria-label={ariaLabel}
+    title={ariaLabel}
+  >
+    <span className='truncate'>{label}</span>
+    <Icon size={16} />
+  </button>
+)
+
 const MobileFilterTriggers = () => {
   // --- Hooks ---
   const { setIsFilterOpen, setIsDiscountFilterOpen, setIsTypeFilterOpen } = useUiProductStore()
@@ -32,59 +57,45 @@ const MobileFilterTriggers = () => {
     <div className='pt-2 lg:hidden' aria-label='Mobile filters'>
       <div className='flex items-center gap-3'>
         {/* Main Filter Icon */}
-        <div className='min-w-[24px]' aria-hidden='true'>
-          <FilterIcon />
+        <div className='' aria-hidden='true'>
+          <div className='flex items-center gap-2 rounded-[10px] bg-white border border-[#DEE4EE] px-[12px] py-[6px] text-[12px] font-medium text-gray-2 whitespace-nowrap transition-colors hover:bg-gray-50'>
+            <FilterIcon size={18} />
+          </div>
         </div>
 
         {/* Scrollable Filter Buttons */}
         <div className='flex-1 min-w-0 flex items-center gap-3 overflow-x-auto scrollbar-hide'>
           {/* Price Filter */}
-          <button
-            type='button'
+          <FilterTriggerButton
+            label='Giá'
             onClick={handleOpenMainFilter}
-            className='flex items-center gap-2 rounded-lg bg-(--color-surface-50) px-4 py-2 text-[16px] font-semibold text-(--color-gray-2) whitespace-nowrap'
-            aria-label='Filter by price'
-            title='Lọc theo giá'
-          >
-            <span>Giá</span>
-            <ArrowUpIcon size={16} />
-          </button>
+            icon={ArrowUpIcon}
+            ariaLabel='Lọc theo giá'
+          />
 
           {/* Category Filter */}
-          <button
-            type='button'
+          <FilterTriggerButton
+            label='Danh mục'
             onClick={handleOpenMainFilter}
-            className='flex items-center gap-2 rounded-lg bg-(--color-surface-50) px-4 py-2 text-[16px] font-semibold text-(--color-gray-2) whitespace-nowrap'
-            aria-label='Filter by category'
-            title='Lọc theo danh mục'
-          >
-            <span className='truncate'>Danh mục</span>
-            <ChevronDownIcon size={16} />
-          </button>
+            icon={ChevronDownIcon}
+            ariaLabel='Lọc theo danh mục'
+          />
 
           {/* Discount Percent Filter */}
-          <button
-            type='button'
+          <FilterTriggerButton
+            label='% giảm giá'
             onClick={handleOpenDiscountFilter}
-            className='flex items-center gap-2 rounded-lg bg-(--color-surface-50) px-4 py-2 text-[16px] font-semibold text-(--color-gray-2) whitespace-nowrap'
-            aria-label='Filter by discount percent'
-            title='Lọc theo % giảm giá'
-          >
-            <span className='truncate'>% giảm giá</span>
-            <ChevronDownIcon size={16} />
-          </button>
+            icon={ChevronDownIcon}
+            ariaLabel='Lọc theo % giảm giá'
+          />
 
           {/* Type Filter */}
-          <button
-            type='button'
+          <FilterTriggerButton
+            label='Loại'
             onClick={handleOpenTypeFilter}
-            className='flex items-center gap-2 rounded-lg bg-(--color-surface-50) px-4 py-2 text-[16px] font-semibold text-(--color-gray-2) whitespace-nowrap'
-            aria-label='Filter by type'
-            title='Lọc theo loại'
-          >
-            <span className='truncate'>Loại</span>
-            <ChevronDownIcon size={16} />
-          </button>
+            icon={ChevronDownIcon}
+            ariaLabel='Lọc theo loại'
+          />
         </div>
       </div>
     </div>

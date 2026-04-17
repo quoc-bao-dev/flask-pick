@@ -24,7 +24,7 @@ const TIME_SLOTS: TimeSlot[] = [
 
 /**
  * SaleTimeSlots component - Displays available time slots for flash sales
- * 
+ *
  * @returns {JSX.Element} The rendered component
  */
 const SaleTimeSlots = () => {
@@ -43,7 +43,7 @@ const SaleTimeSlots = () => {
         <div className='flex min-w-full items-stretch gap-6 h-full overflow-x-auto scrollbar-hide xl:pt-4'>
           {TIME_SLOTS.map((tab) => {
             const isActive = tab.key === activeTab
-            
+
             return (
               <div className='relative' key={tab.key}>
                 <button
@@ -57,9 +57,7 @@ const SaleTimeSlots = () => {
                   title={tab.title}
                 >
                   {/* Time Title */}
-                  <span className='text-[16px] xl:text-2xl font-semibold leading-5'>
-                    {tab.title}
-                  </span>
+                  <span className='text-[16px] xl:text-2xl font-medium leading-5'>{tab.title}</span>
 
                   {/* Status Subtitle */}
                   {tab.subtitle && (
@@ -74,8 +72,8 @@ const SaleTimeSlots = () => {
 
                   {/* Active Indicator */}
                   {isActive && (
-                    <div 
-                      className='absolute bottom-0 left-0 right-0 h-[4px] rounded-t-full bg-(--color-orange-1) animate-in fade-in slide-in-from-bottom-1' 
+                    <div
+                      className='absolute bottom-0 left-0 right-0 h-[2px] rounded-t-full bg-(--color-orange-1) animate-in fade-in slide-in-from-bottom-1'
                       aria-hidden='true'
                     />
                   )}

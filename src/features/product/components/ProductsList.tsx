@@ -3,6 +3,7 @@
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import ProductCard from './ProductCard'
 import { Product } from '../types'
+import NoData from '@/components/ui/NoData'
 
 /**
  * Props for the ProductsList component
@@ -14,7 +15,7 @@ interface ProductsListProps {
 /**
  * ProductsList component
  * Responsibility: Receive a list of products and display them in a responsive grid.
- * 
+ *
  * @param {Product[]} products - The list of products to display
  * @returns {JSX.Element} The rendered component
  */
@@ -23,9 +24,10 @@ const ProductsList = ({ products }: ProductsListProps) => {
 
   if (!products || products.length === 0) {
     return (
-      <div className='flex flex-col items-center justify-center py-20 text-gray-500'>
-        <p className='text-lg font-medium'>Không tìm thấy sản phẩm nào</p>
-      </div>
+      <NoData
+        title='Không tìm thấy sản phẩm phù hợp'
+        content='Hiện tại không có Deal nào khớp với tất cả tiêu chí lọc bạn chọn. Hãy thử bỏ bớt điều kiện lọc để xem nhiều kết quả hơn nhé!'
+      />
     )
   }
 

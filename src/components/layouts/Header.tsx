@@ -63,7 +63,6 @@ const Header = () => {
         {/* Social Communities Navigation */}
         {renderSocialLinks()}
       </header>
-      <MobileSearchBar />
     </div>
   )
 }

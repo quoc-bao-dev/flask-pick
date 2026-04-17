@@ -19,6 +19,7 @@ export const mockProducts: Product[] = [
     total: 18,
     timeRemaining: '01:42:00',
     buttonText: '21:00 - Nhắc tôi',
+    type: 'sale',
   },
   {
     id: 2,
@@ -34,6 +35,7 @@ export const mockProducts: Product[] = [
     total: 15,
     timeRemaining: '02:15:30',
     buttonText: '19:00 - Nhắc tôi',
+    type: 'notify',
   },
   {
     id: 3,
@@ -49,6 +51,7 @@ export const mockProducts: Product[] = [
     total: 25,
     timeRemaining: '00:30:15',
     buttonText: '00:00 - Nhắc tôi',
+    type: 'notify',
   },
   {
     id: 4,
@@ -64,6 +67,7 @@ export const mockProducts: Product[] = [
     total: 10,
     timeRemaining: '03:20:45',
     buttonText: '02:00 - Nhắc tôi',
+    type: 'sale',
   },
   {
     id: 5,
@@ -79,6 +83,7 @@ export const mockProducts: Product[] = [
     total: 20,
     timeRemaining: '01:10:20',
     buttonText: '21:00 - Nhắc tôi',
+    type: 'sale',
   },
   {
     id: 6,
@@ -94,5 +99,6 @@ export const mockProducts: Product[] = [
     total: 15,
     timeRemaining: '02:45:10',
     buttonText: '19:00 - Nhắc tôi',
+    type: 'notify'
   },
 ]
