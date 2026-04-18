@@ -37,12 +37,27 @@ export const metadata: Metadata = {
     siteName: 'Flash Pick',
     locale: 'vi_VN',
     type: 'website',
-
+    images: [
+      {
+        url: '/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Flash Pick - Shopee Flash Sale & Deal Hời Mỗi Ngày',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Flash Pick - Shopee Flash Sale & Deal Hời Mỗi Ngày',
     description: 'Săn deal hời mỗi ngày cùng Flash Pick. Tổng hợp Flash Sale Shopee mới nhất.',
+    images: [
+      {
+        url: '/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Flash Pick - Shopee Flash Sale & Deal Hời Mỗi Ngày',
+      },
+    ],
   },
   robots: {
     index: true,
