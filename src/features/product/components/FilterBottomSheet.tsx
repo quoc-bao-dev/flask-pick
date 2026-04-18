@@ -14,6 +14,8 @@ import FilterChip from '@/components/common/FilterChip'
 import FilterSelectButton from '@/components/common/FilterSelectButton'
 import BaseBottomSheet from './BaseBottomSheet'
 import DiscountExplanationModal from './DiscountExplanationModal'
+import Checkbox from '@/components/ui/Checkbox'
+import { RosetteIcon } from '@/components/icons/RosetteIcon'
 import { useFilterProductStore } from '../store/filterProductStore'
 
 interface FilterBottomSheetProps {
@@ -65,8 +67,8 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
     setPriceRange,
     shopTypes,
     setShopTypes,
-    selectedBrand,
-    setSelectedBrand,
+    selectedBrands,
+    setSelectedBrands,
     ratings,
     setRatings,
     resetFilters,
@@ -322,11 +324,9 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                           ({option.count})
                         </span>
                       </div>
-                      <input
-                        type='checkbox'
+                      <Checkbox
                         checked={discountTypes.includes(option.key)}
                         onChange={() => toggleDiscountType(option.key)}
-                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
                       />
                     </label>
                   ))}
@@ -355,11 +355,9 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                           ({option.count})
                         </span>
                       </div>
-                      <input
-                        type='checkbox'
+                      <Checkbox
                         checked={discountPercentages.includes(option.key)}
                         onChange={() => toggleDiscountPercentage(option.key)}
-                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
                       />
                     </label>
                   ))}
@@ -427,11 +425,9 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                           ({option.count})
                         </span>
                       </div>
-                      <input
-                        type='checkbox'
+                      <Checkbox
                         checked={shopTypes.includes(option.key)}
                         onChange={() => toggleShopType(option.key)}
-                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
                       />
                     </label>
                   ))}
@@ -467,26 +463,12 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                 <button
                   type='button'
                   onClick={() => setIsBrandOpen(true)}
-                  className='w-full py-2 px-3 rounded-[10px] bg-[#F7F9FB] flex items-center justify-between text-left transition-colors hover:bg-gray-100'
+                  className='w-full py-2 px-3 rounded-[10px] border border-(--color-border-1) bg-[#F7F9FB] flex items-center justify-between text-left transition-colors hover:bg-gray-100'
                 >
-                  <div className='flex items-center gap-2 flex-1'>
-                    <svg
-                      width='18'
-                      height='18'
-                      viewBox='0 0 18 18'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M3.74986 5.39986C3.74986 4.96225 3.9237 4.54257 4.23313 4.23313C4.54257 3.9237 4.96225 3.74986 5.39986 3.74986H6.14986C6.58553 3.74961 7.00342 3.57706 7.31236 3.26986L7.83736 2.74486C7.99069 2.59066 8.173 2.46829 8.37379 2.38479C8.57458 2.30129 8.7899 2.2583 9.00736 2.2583C9.22482 2.2583 9.44013 2.30129 9.64093 2.38479C9.84172 2.46829 10.024 2.59066 10.1774 2.74486L10.7024 3.26986C11.0114 3.57736 11.4299 3.74986 11.8649 3.74986H12.6149C13.0525 3.74986 13.4721 3.9237 13.7816 4.23313C14.091 4.54257 14.2649 4.96225 14.2649 5.39986V6.14986C14.2649 6.58486 14.4374 7.00336 14.7449 7.31236L15.2699 7.83736C15.4241 7.99069 15.5464 8.173 15.6299 8.37379C15.7134 8.57458 15.7564 8.7899 15.7564 9.00736C15.7564 9.22482 15.7134 9.44013 15.6299 9.64093C15.5464 9.84172 15.4241 10.024 15.2699 10.1774L14.7449 10.7024C14.4377 11.0113 14.2651 11.4292 14.2649 11.8649V12.6149C14.2649 13.0525 14.091 13.4721 13.7816 13.7816C13.4721 14.091 13.0525 14.2649 12.6149 14.2649H11.8649C11.4292 14.2651 11.0113 14.4377 10.7024 14.7449L10.1774 15.2699C10.024 15.4241 9.84172 15.5464 9.64093 15.6299C9.44013 15.7134 9.22482 15.7564 9.00736 15.7564C8.7899 15.7564 8.57458 15.7134 8.37379 15.6299C8.173 15.5464 7.99069 15.4241 7.83736 15.2699L7.31236 14.7449C7.00342 14.4377 6.58553 14.2651 6.14986 14.2649H5.39986C4.96225 14.2649 4.54257 14.091 4.23313 13.7816C3.9237 13.4721 3.74986 13.0525 3.74986 12.6149V11.8649C3.74961 11.4292 3.57706 11.0113 3.26986 10.7024L2.74486 10.1774C2.59066 10.024 2.46829 9.84172 2.38479 9.64093C2.30129 9.44013 2.2583 9.22482 2.2583 9.00736C2.2583 8.7899 2.30129 8.57458 2.38479 8.37379C2.46829 8.173 2.59066 7.99069 2.74486 7.83736L3.26986 7.31236C3.57706 7.00342 3.74961 6.58553 3.74986 6.14986V5.39986Z'
-                        stroke='#596881'
-                        strokeWidth='1.73333'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                      />
-                    </svg>
-                    <span className='text-[14px] font-medium text-gray-2'>
-                      {selectedBrand || 'Chọn thương hiệu'}
+                  <div className='flex items-center gap-2 flex-1 min-w-0'>
+                    <RosetteIcon size={18} color='#596881' className='shrink-0' />
+                    <span className='text-[14px] font-medium text-gray-2 truncate'>
+                      {selectedBrands.length > 0 ? selectedBrands.join(', ') : 'Chọn thương hiệu'}
                     </span>
                   </div>
                   <div className='text-gray-2'>
@@ -538,11 +520,9 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                         )}
                         <span className='text-[13px] text-(--color-gray-2)'>({option.count})</span>
                       </div>
-                      <input
-                        type='checkbox'
+                      <Checkbox
                         checked={ratings.includes(option.key)}
                         onChange={() => toggleRating(option.key)}
-                        className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
                       />
                     </label>
                   ))}
@@ -705,13 +685,19 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                 {BRAND_OPTIONS.filter((b) =>
                   b.toLowerCase().includes(brandSearch.toLowerCase()),
                 ).map((brand) => {
-                  const isActive = brand === selectedBrand
+                  const isActive = selectedBrands.includes(brand)
                   return (
                     <FilterSelectButton
                       key={brand}
                       label={brand}
                       isActive={isActive}
-                      onClick={() => setSelectedBrand(brand)}
+                      onClick={() => {
+                        setSelectedBrands(
+                          selectedBrands.includes(brand)
+                            ? selectedBrands.filter((b) => b !== brand)
+                            : [...selectedBrands, brand],
+                        )
+                      }}
                     />
                   )
                 })}

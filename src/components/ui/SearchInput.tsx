@@ -16,6 +16,8 @@ interface SearchInputProps {
   className?: string
   showClearButton?: boolean
   ariaLabel?: string
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onSearch?: () => void
 }
 
 /**
@@ -35,17 +37,21 @@ const SearchInput = ({
   className = '',
   showClearButton = false,
   ariaLabel = 'Tìm kiếm sản phẩm',
+  onKeyDown,
+  onSearch,
 }: SearchInputProps) => {
   return (
     <div 
       className={`flex items-center gap-2 rounded-[12px] border-2 border-(--color-orange-1) bg-white px-3 py-2 shadow-sm transition-shadow focus-within:shadow-md ${className}`}
     >
       {/* 1. Search Icon */}
-      <SearchIcon 
-        size={18} 
-        color='#8796AF' 
-        aria-hidden='true' 
-      />
+      <button onClick={onSearch} type='button' className='focus:outline-none'>
+        <SearchIcon
+          size={18}
+          color='#8796AF'
+          aria-hidden='true'
+        />
+      </button>
 
       {/* 2. Main Input Field */}
       <input
@@ -53,6 +59,7 @@ const SearchInput = ({
         value={value}
         onChange={onChange}
         onFocus={onFocus}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className='w-full bg-transparent text-(--color-text-strong) font-medium outline-none placeholder:text-(--color-gray-4) focus:placeholder:opacity-70'
         aria-label={ariaLabel}

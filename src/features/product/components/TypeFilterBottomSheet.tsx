@@ -1,5 +1,6 @@
 'use client'
 
+import Checkbox from '@/components/ui/Checkbox'
 import BaseBottomSheet from './BaseBottomSheet'
 
 import { useState } from 'react'
@@ -71,11 +72,9 @@ const TypeFilterBottomSheet = ({
               </span>
               <span className='text-[14px] text-gray-3'>({option.count})</span>
             </div>
-            <input
-              type='checkbox'
+            <Checkbox
               checked={selectedTypes.includes(option.key)}
               onChange={() => toggleType(option.key)}
-              className='w-5 h-5 rounded border-(--color-border-1) accent-(--color-orange-1) focus:ring-(--color-orange-1)'
             />
           </label>
         ))}

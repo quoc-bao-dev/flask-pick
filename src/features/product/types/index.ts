@@ -30,10 +30,11 @@ export interface ProductFilterValues {
   discountTypes: string[];
   discountPercentages: string[];
   priceRange: [number, number];
-  selectedBrand: string;
+  selectedBrands: string[];
   shopTypes: string[];
   ratings: string[];
   totalProducts: number; // Added field to track the currently filtered count
+  isMobileSearchOpen: boolean;
 }
 
 /**

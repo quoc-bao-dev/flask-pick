@@ -1,10 +1,6 @@
 'use client'
 
-import FlashSaleDeals from '../components/FlashSaleDeals'
-import MobileFilterTriggers from '../components/MobileFilterTriggers'
-import SaleTimeSlots from '../components/SaleTimeSlots'
 import ProductListing from '../components/ProductListing'
-import ProductFilterModals from '../components/ProductFilterModals'
 
 /**
  * Flash Sale Home Page component

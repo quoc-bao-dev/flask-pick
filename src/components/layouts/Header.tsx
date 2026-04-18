@@ -4,6 +4,7 @@ import { _Image } from '@/core/constant/asset'
 import Logo from '../ui/Logo'
 import DesktopSearch from '../ui/DesktopSearch'
 import MobileSearchBar from '../ui/MobileSearchBar'
+import Link from 'next/link'
 
 /**
  * Global Header component
@@ -55,7 +56,9 @@ const Header = () => {
     <div>
       <header className='flex items-center justify-between py-2'>
         {/* Brand Branding (Logo) */}
-        <Logo aria-label='Flask Pick Home' />
+        <Link href='/'>
+          <Logo aria-label='Flask Pick Home' />
+        </Link>
 
         {/* Main Desktop Search Container (Hidden on small screens) */}
         <DesktopSearch />

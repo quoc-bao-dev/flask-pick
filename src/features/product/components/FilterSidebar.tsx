@@ -9,6 +9,9 @@ import RangeInput from '@/components/ui/RangeInput'
 import { formatCurrency } from '@/core/utils/format'
 import { useFilterProductStore } from '../store/filterProductStore'
 import Tooltip from '@/components/ui/Tooltip'
+import SearchableFilterDropdown from '@/components/common/SearchableFilterDropdown'
+import Checkbox from '@/components/ui/Checkbox'
+import { RosetteIcon } from '@/components/icons/RosetteIcon'
 
 /**
  * FilterSidebar component
@@ -25,7 +28,7 @@ const FilterSidebar = () => {
     discountTypes,
     discountPercentages,
     priceRange,
-    selectedBrand,
+    selectedBrands,
     shopTypes,
     ratings,
 
@@ -34,7 +37,7 @@ const FilterSidebar = () => {
     setDiscountTypes,
     setDiscountPercentages,
     setPriceRange,
-    setSelectedBrand,
+    setSelectedBrands,
     setShopTypes,
     setRatings,
     resetFilters,
@@ -42,7 +45,6 @@ const FilterSidebar = () => {
 
   // 1. Transient UI States (Keep local as they don't persist in business logic)
   const [isBrandOpen, setIsBrandOpen] = useState(false)
-  const [brandSearch, setBrandSearch] = useState('')
 
   // 2. Refs
   const brandDropdownRef = useRef<HTMLDivElement>(null)
@@ -181,11 +183,9 @@ const FilterSidebar = () => {
                   ({option.count})
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Checkbox
                 checked={discountTypes.includes(option.key)}
                 onChange={() => toggleFilter(discountTypes, setDiscountTypes, option.key)}
-                className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
               />
             </label>
           ))}
@@ -214,13 +214,11 @@ const FilterSidebar = () => {
                   ({option.count})
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Checkbox
                 checked={discountPercentages.includes(option.key)}
                 onChange={() =>
                   toggleFilter(discountPercentages, setDiscountPercentages, option.key)
                 }
-                className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
               />
             </label>
           ))}
@@ -289,11 +287,9 @@ const FilterSidebar = () => {
                   ({option.count})
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Checkbox
                 checked={shopTypes.includes(option.key)}
                 onChange={() => toggleFilter(shopTypes, setShopTypes, option.key)}
-                className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
               />
             </label>
           ))}
@@ -306,47 +302,37 @@ const FilterSidebar = () => {
         <button
           type='button'
           onClick={() => setIsBrandOpen(!isBrandOpen)}
-          className='w-full mt-2 py-2 px-3 rounded-xl bg-(--color-gray-1) text-(--color-gray-4) flex gap-2 items-center justify-between transition-colors hover:bg-gray-200 group'
+          className={`w-full mt-2 py-2 px-3 rounded-[10px] border flex gap-2 items-center justify-between transition-all group ${
+            isBrandOpen
+              ? 'border-(--color-orange-1) bg-white shadow-sm'
+              : 'border-(--color-border-1) bg-white hover:bg-gray-50'
+          }`}
           title='Chọn thương hiệu'
         >
-          <p className='text-[14px] font-semibold text-(--color-text-strong)'>
-            {selectedBrand || 'Tất cả thương hiệu'}
-          </p>
+          <div className='flex items-center gap-2 flex-1 min-w-0'>
+            <RosetteIcon
+              size={18}
+              color={isBrandOpen ? '#f15024' : '#596881'}
+              className='shrink-0 transition-colors'
+            />
+            <p className='text-[14px] font-medium text-(--color-gray-2) truncate text-left'>
+              {selectedBrands.length > 0 ? selectedBrands.join(', ') : 'Chọn thương hiệu'}
+            </p>
+          </div>
           <ChevronDownIcon
-            className={`w-5 h-5 transition-transform duration-200 ${isBrandOpen ? 'rotate-180 text-(--color-orange-1)' : ''}`}
+            className={`w-5 h-5 transition-transform duration-200 ${
+              isBrandOpen ? 'rotate-180 text-(--color-orange-1)' : 'text-(--color-gray-2)'
+            }`}
           />
         </button>
 
         {isBrandOpen && (
-          <div className='absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-(--color-border-1) shadow-xl z-50 p-3 animate-in fade-in zoom-in-95 duration-200'>
-            <input
-              value={brandSearch}
-              onChange={(e) => setBrandSearch(e.target.value)}
-              placeholder='Tìm thương hiệu...'
-              className='w-full mb-3 px-3 py-2 rounded-lg bg-gray-50 border border-(--color-border-1) text-[13px] outline-none focus:border-(--color-orange-1)'
-            />
-            <div className='grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto scrollbar-hide'>
-              {['Toshiba', 'Sony', 'Samsung', 'LG', 'Casper', 'Sharp']
-                .filter((b) => b.toLowerCase().includes(brandSearch.toLowerCase()))
-                .map((brand) => (
-                  <button
-                    key={brand}
-                    type='button'
-                    onClick={() => {
-                      setSelectedBrand(brand)
-                      setIsBrandOpen(false)
-                    }}
-                    className={`px-2 py-1.5 rounded-lg text-[13px] font-medium transition-all ${
-                      brand === selectedBrand
-                        ? 'bg-(--color-orange-1) text-white'
-                        : 'hover:bg-gray-100 text-[#111625]'
-                    }`}
-                  >
-                    {brand}
-                  </button>
-                ))}
-            </div>
-          </div>
+          <SearchableFilterDropdown
+            items={['Toshiba', 'Sony', 'Samsung', 'LG', 'Casper', 'Sharp']}
+            selectedItems={selectedBrands}
+            onToggle={(brand) => toggleFilter(selectedBrands, setSelectedBrands, brand)}
+            className='absolute top-full left-0 right-0 mt-2 z-50'
+          />
         )}
       </section>
 
@@ -372,11 +358,9 @@ const FilterSidebar = () => {
                   ({option.count})
                 </span>
               </div>
-              <input
-                type='checkbox'
+              <Checkbox
                 checked={ratings.includes(option.key)}
                 onChange={() => toggleFilter(ratings, setRatings, option.key)}
-                className='w-5 h-5 rounded border-2 border-(--color-border-1) accent-(--color-orange-1) focus:ring-2 focus:ring-(--color-orange-1) cursor-pointer'
               />
             </label>
           ))}

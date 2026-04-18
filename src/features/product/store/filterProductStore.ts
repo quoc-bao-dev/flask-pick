@@ -11,10 +11,11 @@ interface ProductFilterActions {
   setDiscountTypes: (types: string[]) => void;
   setDiscountPercentages: (percentages: string[]) => void;
   setPriceRange: (range: [number, number]) => void;
-  setSelectedBrand: (brand: string) => void;
+  setSelectedBrands: (brands: string[]) => void;
   setShopTypes: (types: string[]) => void;
   setRatings: (ratings: string[]) => void;
   setTotalProducts: (count: number) => void;
+  setIsMobileSearchOpen: (isOpen: boolean) => void;
   resetFilters: () => void;
 }
 
@@ -25,10 +26,11 @@ const initialFilterValues: ProductFilterValues = {
   discountTypes: [],
   discountPercentages: [],
   priceRange: [69000, 8869000],
-  selectedBrand: 'Samsung',
+  selectedBrands: ['Samsung'],
   shopTypes: [],
   ratings: [],
   totalProducts: 0,
+  isMobileSearchOpen: false,
 };
 
 
@@ -46,10 +48,12 @@ export const useFilterProductStore = create<ProductFilterValues & ProductFilterA
     setDiscountTypes: (discountTypes) => set({ discountTypes }, false, 'product/setDiscountTypes'),
     setDiscountPercentages: (discountPercentages) => set({ discountPercentages }, false, 'product/setDiscountPercentages'),
     setPriceRange: (priceRange) => set({ priceRange }, false, 'product/setPriceRange'),
-    setSelectedBrand: (selectedBrand) => set({ selectedBrand }, false, 'product/setSelectedBrand'),
+    setSelectedBrands: (selectedBrands) => set({ selectedBrands }, false, 'product/setSelectedBrands'),
     setShopTypes: (shopTypes) => set({ shopTypes }, false, 'product/setShopTypes'),
     setRatings: (ratings) => set({ ratings }, false, 'product/setRatings'),
     setTotalProducts: (totalProducts) => set({ totalProducts }, false, 'product/setTotalProducts'),
+    setIsMobileSearchOpen: (isMobileSearchOpen) => set({ isMobileSearchOpen }, false, 'product/setIsMobileSearchOpen'),
+    
     
     resetFilters: () => set(initialFilterValues, false, 'product/resetFilters'),
   }))

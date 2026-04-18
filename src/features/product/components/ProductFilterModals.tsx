@@ -3,6 +3,7 @@
 import FilterBottomSheet from './FilterBottomSheet'
 import DiscountFilterBottomSheet from './DiscountFilterBottomSheet'
 import TypeFilterBottomSheet from './TypeFilterBottomSheet'
+import MobileSearchOverlay from './MobileSearchOverlay'
 import { useUiProductStore } from '../store/uiProductStore'
 
 /**
@@ -79,6 +80,9 @@ const ProductFilterModals = () => {
           // Reset point
         }}
       />
+
+      {/* 4. Mobile Search Full-screen Overlay */}
+      <MobileSearchOverlay />
     </>
   )
 }

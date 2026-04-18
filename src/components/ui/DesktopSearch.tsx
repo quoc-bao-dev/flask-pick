@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { _Image } from '@/core/constant/asset'
 import SearchInput from './SearchInput'
@@ -48,7 +49,10 @@ const MOCK_SHOPS = [
  * @returns {JSX.Element} The rendered component
  */
 const DesktopSearch = () => {
-  // --- 1. Refs ---
+  // --- 1. Router ---
+  const router = useRouter()
+
+  // --- 2. Refs ---
   const searchRef = useRef<HTMLDivElement>(null)
 
   // --- 2. States ---
@@ -92,6 +96,12 @@ const DesktopSearch = () => {
     }
   }
 
+  const handleSearch = (query: string) => {
+    if (!query.trim()) return
+    setShowResults(false)
+    router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+  }
+
   /**
    * Helper function to highlight matching text in suggestions.
    */
@@ -118,6 +128,12 @@ const DesktopSearch = () => {
         onChange={handleSearchChange}
         onFocus={handleInputFocus}
         onClear={handleClearSearch}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleSearch(searchValue)
+          }
+        }}
+        onSearch={() => handleSearch(searchValue)}
         showClearButton={true}
         ariaLabel='Tìm kiếm sản phẩm trên máy tính'
       />
@@ -142,6 +158,7 @@ const DesktopSearch = () => {
                   <button
                     key={tag}
                     type='button'
+                    onClick={() => handleSearch(tag)}
                     className='cursor-pointer rounded-[10px] bg-[#F7F9FB] px-3 py-1.5 text-[14px] font-medium leading-[20px] text-[#111625] transition-all hover:bg-gray-100 hover:text-(--color-orange-1)'
                     title={`Tìm kiếm: ${tag}`}
                   >
@@ -156,6 +173,7 @@ const DesktopSearch = () => {
                   <button
                     key={index}
                     type='button'
+                    onClick={() => handleSearch(item)}
                     className='w-full cursor-pointer rounded px-2 py-1.5 text-left text-[14px] font-semibold leading-[20px] text-[#111625] transition-colors hover:bg-gray-50'
                     title={item}
                   >
