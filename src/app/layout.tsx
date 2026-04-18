@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   authors: [{ name: 'Flash Pick Team' }],
   creator: 'Flash Pick',
   publisher: 'Flash Pick',
+  alternates: {
+    canonical: 'https://flashpick.vn',
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -34,6 +37,7 @@ export const metadata: Metadata = {
     siteName: 'Flash Pick',
     locale: 'vi_VN',
     type: 'website',
+
   },
   twitter: {
     card: 'summary_large_image',
