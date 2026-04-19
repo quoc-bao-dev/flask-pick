@@ -148,15 +148,13 @@ const RangeInput = ({
         ref={sliderRef}
         onClick={handleTrackClick}
         onTouchStart={handleTrackClick}
-        className={`relative h-2 rounded-full bg-[#e0e4eb] cursor-pointer touch-none ${
-          disabled ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={`relative h-2 rounded-full bg-[#e0e4eb] cursor-pointer touch-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
       >
         {/* Filled segment */}
         <div
-          className={`absolute h-2 rounded-full bg-[#f26522] ${
-            isDragging ? '' : 'transition-all duration-150'
-          }`}
+          className={`absolute h-2 rounded-full bg-[#f26522] ${isDragging ? '' : 'transition-all duration-150'
+            }`}
           style={{
             left: `${minPercentage}%`,
             width: `${trackWidth}%`,
@@ -165,9 +163,8 @@ const RangeInput = ({
 
         {/* Min handle */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing touch-none ${
-            isDragging === 'min' ? 'scale-110' : 'transition-transform'
-          } ${disabled ? 'cursor-not-allowed' : ''}`}
+          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing touch-none ${isDragging === 'min' ? 'scale-110' : 'transition-transform'
+            } ${disabled ? 'cursor-not-allowed' : ''}`}
           style={{ left: `${minPercentage}%` }}
           onMouseDown={handleStart('min')}
           onTouchStart={handleStart('min')}
@@ -184,9 +181,8 @@ const RangeInput = ({
 
         {/* Max handle */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing touch-none ${
-            isDragging === 'max' ? 'scale-110' : 'transition-transform'
-          } ${disabled ? 'cursor-not-allowed' : ''}`}
+          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing touch-none ${isDragging === 'max' ? 'scale-110' : 'transition-transform'
+            } ${disabled ? 'cursor-not-allowed' : ''}`}
           style={{ left: `${maxPercentage}%` }}
           onMouseDown={handleStart('max')}
           onTouchStart={handleStart('max')}

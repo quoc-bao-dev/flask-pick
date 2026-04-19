@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { PriceDisplayInput, SectionTitle } from '@/components/common/FilterSection'
+import SearchableFilterDropdown from '@/components/common/SearchableFilterDropdown'
 import { BalanceIcon } from '@/components/icons/BalanceIcon'
 import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon'
+import { RosetteIcon } from '@/components/icons/RosetteIcon'
 import { SparkleIcon } from '@/components/icons/SparkleIcon'
 import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
-import RangeInput from '@/components/ui/RangeInput'
-import { formatCurrency } from '@/core/utils/format'
-import { useFilterProductStore } from '../store/filterProductStore'
-import Tooltip from '@/components/ui/Tooltip'
-import SearchableFilterDropdown from '@/components/common/SearchableFilterDropdown'
 import Checkbox from '@/components/ui/Checkbox'
-import { RosetteIcon } from '@/components/icons/RosetteIcon'
+import RangeInput from '@/components/ui/RangeInput'
+import Tooltip from '@/components/ui/Tooltip'
+import { useEffect, useRef, useState } from 'react'
+import { useFilterProductStore } from '../store/filterProductStore'
 
 /**
  * FilterSidebar component
@@ -76,37 +76,6 @@ const FilterSidebar = () => {
     setList(list.includes(value) ? list.filter((t) => t !== value) : [...list, value])
   }
 
-  // --- Sub-components ---
-
-  const SectionTitle = ({ title }: { title: string }) => (
-    <h3 className='text-[14px] leading-[28px] tracking-normal text-(--color-gray-2) mb-3 uppercase'>
-      {title}
-    </h3>
-  )
-
-  const PriceDisplayInput = ({
-    value,
-    onChange,
-    placeholder,
-  }: {
-    value: number
-    onChange: (val: string) => void
-    placeholder: string
-  }) => (
-    <div className='relative flex border border-(--color-border-1) rounded-[10px] bg-white transition-shadow focus-within:shadow-sm overflow-hidden'>
-      <div className='px-3 py-2 bg-[#F7F9FB] border-r border-(--color-border-1) text-(--color-gray-2) text-[14px] font-medium pointer-events-none'>
-        ₫
-      </div>
-      <input
-        type='text'
-        inputMode='numeric'
-        value={formatCurrency(value)}
-        onChange={(e) => onChange(e.target.value)}
-        className='flex-1 px-3 py-2 text-[14px] font-medium text-(--color-text-strong) outline-none'
-        placeholder={placeholder}
-      />
-    </div>
-  )
 
   return (
     <nav
@@ -241,7 +210,7 @@ const FilterSidebar = () => {
               value={priceRange[0]}
               placeholder='Tối thiểu'
               onChange={(val) => {
-                const numeric = Number(val.replace(/[^\d]/g, ''))
+                const numeric = val === '' ? 0 : Number(val)
                 setPriceRange([Math.min(numeric, priceRange[1]), priceRange[1]])
               }}
             />
@@ -250,7 +219,7 @@ const FilterSidebar = () => {
               value={priceRange[1]}
               placeholder='Tối đa'
               onChange={(val) => {
-                const numeric = Number(val.replace(/[^\d]/g, ''))
+                const numeric = val === '' ? 0 : Number(val)
                 setPriceRange([priceRange[0], Math.min(numeric, 10000000)])
               }}
             />
@@ -302,11 +271,10 @@ const FilterSidebar = () => {
         <button
           type='button'
           onClick={() => setIsBrandOpen(!isBrandOpen)}
-          className={`w-full mt-2 py-2 px-3 rounded-[10px] border flex gap-2 items-center justify-between transition-all group ${
-            isBrandOpen
+          className={`w-full mt-2 py-2 px-3 rounded-[10px] border flex gap-2 items-center justify-between transition-all group ${isBrandOpen
               ? 'border-(--color-orange-1) bg-white shadow-sm'
               : 'border-(--color-border-1) bg-white hover:bg-gray-50'
-          }`}
+            }`}
           title='Chọn thương hiệu'
         >
           <div className='flex items-center gap-2 flex-1 min-w-0'>
@@ -320,9 +288,8 @@ const FilterSidebar = () => {
             </p>
           </div>
           <ChevronDownIcon
-            className={`w-5 h-5 transition-transform duration-200 ${
-              isBrandOpen ? 'rotate-180 text-(--color-orange-1)' : 'text-(--color-gray-2)'
-            }`}
+            className={`w-5 h-5 transition-transform duration-200 ${isBrandOpen ? 'rotate-180 text-(--color-orange-1)' : 'text-(--color-gray-2)'
+              }`}
           />
         </button>
 

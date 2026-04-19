@@ -1,22 +1,22 @@
 'use client'
 
+import FilterChip from '@/components/common/FilterChip'
+import { PriceDisplayInput, SectionTitle } from '@/components/common/FilterSection'
+import FilterSelectButton from '@/components/common/FilterSelectButton'
 import { BalanceIcon } from '@/components/icons/BalanceIcon'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
-import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { RosetteIcon } from '@/components/icons/RosetteIcon'
 import { SparkleIcon } from '@/components/icons/SparkleIcon'
-import { _Image } from '@/core/constant/asset'
-import { formatCurrency } from '@/core/utils/format'
-import { useEffect, useState, useRef } from 'react'
+import Checkbox from '@/components/ui/Checkbox'
 import RangeInput from '@/components/ui/RangeInput'
 import Tooltip from '@/components/ui/Tooltip'
-import FilterChip from '@/components/common/FilterChip'
-import FilterSelectButton from '@/components/common/FilterSelectButton'
+import { _Image } from '@/core/constant/asset'
+import { formatCurrency } from '@/core/utils/format'
+import { useEffect, useRef, useState } from 'react'
+import { useFilterProductStore } from '../store/filterProductStore'
 import BaseBottomSheet from './BaseBottomSheet'
 import DiscountExplanationModal from './DiscountExplanationModal'
-import Checkbox from '@/components/ui/Checkbox'
-import { RosetteIcon } from '@/components/icons/RosetteIcon'
-import { useFilterProductStore } from '../store/filterProductStore'
 
 interface FilterBottomSheetProps {
   isOpen: boolean
@@ -175,35 +175,6 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
     setPriceRange([priceRange[0], nextMax])
   }
 
-  const SectionTitle = ({ title }: { title: string }) => (
-    <h3 className='text-[14px] leading-[28px] tracking-normal text-(--color-gray-2) mb-3 uppercase'>
-      {title}
-    </h3>
-  )
-
-  const PriceDisplayInput = ({
-    value,
-    onChange,
-    placeholder,
-  }: {
-    value: number
-    onChange: (val: string) => void
-    placeholder: string
-  }) => (
-    <div className='relative flex border border-(--color-border-1) rounded-[10px] bg-white transition-shadow focus-within:shadow-sm overflow-hidden'>
-      <div className='px-3 flex items-center bg-[#F7F9FB] border-r border-(--color-border-1) text-(--color-gray-2) text-[14px] font-medium pointer-events-none'>
-        ₫
-      </div>
-      <input
-        type='text'
-        inputMode='numeric'
-        value={formatCurrency(value)}
-        onChange={(e) => onChange(e.target.value)}
-        className='flex-1 w-full min-w-0 px-3 py-2 text-[14px] font-medium text-(--color-text-strong) outline-none'
-        placeholder={placeholder}
-      />
-    </div>
-  )
 
   return (
     <>
@@ -238,11 +209,10 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
           {/* === MAIN CONTENT === */}
           <div
             ref={mainRef}
-            className={`w-full transition-transform duration-300 ease-in-out shrink-0 ${
-              isCategoryOpen || isBrandOpen
-                ? 'absolute top-0 opacity-0 -translate-x-full pointer-events-none'
-                : 'relative opacity-100 translate-x-0'
-            }`}
+            className={`w-full transition-transform duration-300 ease-in-out shrink-0 ${isCategoryOpen || isBrandOpen
+              ? 'absolute top-0 opacity-0 -translate-x-full pointer-events-none'
+              : 'relative opacity-100 translate-x-0'
+              }`}
           >
             <div className='space-y-6 pb-4'>
               {/* Sắp xếp theo */}
@@ -367,7 +337,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
               {/* Khoảng giá */}
               <section>
                 <SectionTitle title='Khoảng giá' />
-                <div className='space-y-4 pt-2'>
+                <div className='space-y-4 pt-2 px-3'>
                   <RangeInput
                     min={0}
                     max={10000000}
@@ -382,7 +352,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                         value={priceRange[0]}
                         placeholder='Tối thiểu'
                         onChange={(val) => {
-                          const numeric = Number(val.replace(/[^\d]/g, ''))
+                          const numeric = val === '' ? 0 : Number(val)
                           setPriceRange([Math.min(numeric, priceRange[1]), priceRange[1]])
                         }}
                       />
@@ -393,7 +363,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                         value={priceRange[1]}
                         placeholder='Tối đa'
                         onChange={(val) => {
-                          const numeric = Number(val.replace(/[^\d]/g, ''))
+                          const numeric = val === '' ? 0 : Number(val)
                           setPriceRange([priceRange[0], Math.min(numeric, 10000000)])
                         }}
                       />
@@ -534,11 +504,10 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
           {/* === CATEGORY DRAWER === */}
           <div
             ref={categoryRef}
-            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${
-              isCategoryOpen
-                ? 'relative opacity-100 translate-x-0'
-                : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
-            }`}
+            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${isCategoryOpen
+              ? 'relative opacity-100 translate-x-0'
+              : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
+              }`}
           >
             <div className='flex items-center gap-3 py-3'>
               <button type='button' onClick={() => setIsCategoryOpen(false)} className=''>
@@ -617,11 +586,10 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
           {/* === BRAND DRAWER === */}
           <div
             ref={brandRef}
-            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${
-              isBrandOpen
-                ? 'relative opacity-100 translate-x-0'
-                : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
-            }`}
+            className={`w-full bg-white transition-transform duration-300 ease-in-out shrink-0 ${isBrandOpen
+              ? 'relative opacity-100 translate-x-0'
+              : 'absolute top-0 opacity-0 translate-x-full pointer-events-none'
+              }`}
           >
             <div className='flex items-center gap-3 py-3'>
               <button
