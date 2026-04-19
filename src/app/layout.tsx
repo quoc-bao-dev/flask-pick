@@ -65,6 +65,13 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -72,6 +79,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='vi'>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+              });
+            `,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
     </html>
   )
