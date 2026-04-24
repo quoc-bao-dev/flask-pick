@@ -1,41 +1,40 @@
 'use client'
 
 import Checkbox from '@/components/ui/Checkbox'
-import BaseBottomSheet from './BaseBottomSheet'
 
-import { useState } from 'react'
+import { useDiscountTypesQuery } from '@/services/discount-type'
+import { useEffect, useState } from 'react'
+import BaseBottomSheet from './BaseBottomSheet'
 
 interface DiscountFilterBottomSheetProps {
   isOpen: boolean
+  initialSelected?: string[]
   onClose: () => void
   onApply: (selectedDiscounts: string[]) => void
   onReset: () => void
 }
 
-const DISCOUNT_OPTIONS = [
-  { key: 'over50', label: 'Giảm sốc (Trên 50%)', count: 69 },
-  {
-    key: '30-50',
-    label: 'Giảm sâu (30% - 50%)',
-    count: 69,
-  },
-  {
-    key: '10-30',
-    label: 'Giảm vừa (10% - 30%)',
-    count: 69,
-  },
-  { key: 'under10', label: 'Giảm ít (Dưới 10%)', count: 69 },
-]
-
 const DiscountFilterBottomSheet = ({
   isOpen,
+  initialSelected = [],
   onClose,
   onApply,
   onReset,
 }: DiscountFilterBottomSheetProps) => {
-  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([])
+  // --- Hooks ---
+  const { data: discountTypes } = useDiscountTypesQuery()
 
-  const toggleDiscountPercentage = (key: string) => {
+  // --- State ---
+  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>(initialSelected)
+
+  // Sync state when opening with fresh store values
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDiscounts(initialSelected)
+    }
+  }, [isOpen, initialSelected])
+
+  const toggleDiscount = (key: string) => {
     setSelectedDiscounts((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     )
@@ -74,15 +73,15 @@ const DiscountFilterBottomSheet = ({
       }
     >
       <div className='space-y-3'>
-        {DISCOUNT_OPTIONS.map((option) => (
-          <label key={option.key} className='flex items-center justify-between cursor-pointer'>
+        {discountTypes?.map((option) => (
+          <label key={option.code} className='flex items-center justify-between cursor-pointer'>
             <div className='flex items-center gap-2'>
               <span className='text-[14px] text-(--color-text-strong)'>{option.label}</span>
-              <span className='text-[14px] text-gray-3'>({option.count})</span>
+              <span className='text-[14px] text-gray-3'>(69)</span>
             </div>
             <Checkbox
-              checked={selectedDiscounts.includes(option.key)}
-              onChange={() => toggleDiscountPercentage(option.key)}
+              checked={selectedDiscounts.includes(option.code)}
+              onChange={() => toggleDiscount(option.code)}
             />
           </label>
         ))}

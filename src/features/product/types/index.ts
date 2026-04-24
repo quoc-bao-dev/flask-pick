@@ -34,7 +34,6 @@ export interface ProductFilterValues {
   shopTypes: string[];
   ratings: string[];
   totalProducts: number; // Added field to track the currently filtered count
-  isMobileSearchOpen: boolean;
 }
 
 /**
@@ -45,4 +44,5 @@ export interface ProductFilterUiState {
   isFilterOpen: boolean;
   isDiscountFilterOpen: boolean;
   isTypeFilterOpen: boolean;
+  isMobileSearchOpen: boolean;
 }

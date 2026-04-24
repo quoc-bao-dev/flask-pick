@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Providers } from './providers'
+
 import './globals.css'
 
 const geistSans = Geist({
@@ -15,9 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: 'Flash Pick - Shopee Flash Sale & Deal Hời Mỗi Ngày',
-    template: '%s | Flash Pick'
+    template: '%s | Flash Pick',
   },
-  description: 'Khám phá Flash Pick - Nơi tổng hợp các deal hời, Flash Sale Shopee hấp dẫn nhất mỗi ngày. Mua sắm thông minh, tiết kiệm tối đa cùng Flash Pick.',
+  description:
+    'Khám phá Flash Pick - Nơi tổng hợp các deal hời, Flash Sale Shopee hấp dẫn nhất mỗi ngày. Mua sắm thông minh, tiết kiệm tối đa cùng Flash Pick.',
   keywords: ['flash sale', 'shopee deals', 'mua sắm online', 'giảm giá', 'deal hời', 'flash pick'],
   authors: [{ name: 'Flash Pick Team' }],
   creator: 'Flash Pick',
@@ -90,7 +93,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

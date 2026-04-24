@@ -7,7 +7,7 @@ import { CameraIcon } from '@/components/icons/CameraIcon'
 import { CloseIcon } from '@/components/icons/CloseIcon'
 import { TrashIcon } from '@/components/icons/TrashIcon'
 import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
-import { useFilterProductStore } from '../store/filterProductStore'
+import { useUiProductStore } from '../store/uiProductStore'
 import { mockProducts } from '@/core/constant/products'
 import { formatCurrency } from '@/core/utils/format'
 import Image from 'next/image'
@@ -21,7 +21,7 @@ import Image from 'next/image'
  */
 const MobileSearchOverlay = () => {
   const router = useRouter()
-  const { isMobileSearchOpen, setIsMobileSearchOpen } = useFilterProductStore()
+  const { isMobileSearchOpen, setIsMobileSearchOpen } = useUiProductStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [recentSearches, setRecentSearches] = useState([
     'Tai nghe',
@@ -62,7 +62,7 @@ const MobileSearchOverlay = () => {
   }
 
   return (
-    <div className='fixed inset-0 z-[100] bg-white flex flex-col'>
+    <div className='fixed inset-0 z-100 bg-white flex flex-col'>
       {/* Header with Back Button and Search Input */}
       <header className='flex items-center gap-3 px-4 py-3'>
         <button

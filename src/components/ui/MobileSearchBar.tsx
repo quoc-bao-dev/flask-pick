@@ -1,6 +1,6 @@
 'use client'
 
-import { useFilterProductStore } from '@/features/product/store/filterProductStore'
+import { useUiProductStore } from '@/features/product/store/uiProductStore'
 import { SearchIcon } from '@/components/icons/SearchIcon'
 import { CameraIcon } from '@/components/icons/CameraIcon'
 
@@ -13,7 +13,7 @@ import { CameraIcon } from '@/components/icons/CameraIcon'
  * @returns {JSX.Element} The rendered component
  */
 const MobileSearchBar = () => {
-  const { setIsMobileSearchOpen } = useFilterProductStore()
+  const { setIsMobileSearchOpen } = useUiProductStore()
 
   return (
     <div

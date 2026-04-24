@@ -17,7 +17,7 @@ interface SearchableFilterDropdownProps {
  * SearchableFilterDropdown component
  * Responsibility: Provide a searchable list of items with multiple selection capability.
  * Based on Figma design: https://www.figma.com/design/dd96wTQBmpmT6EwEg8UqMj/Flash-Pick---Shopee-Flash-sale?node-id=1129-7932
- * 
+ *
  * @param {SearchableFilterDropdownProps} props - Component props
  * @returns {JSX.Element} The rendered component
  */
@@ -31,7 +31,7 @@ const SearchableFilterDropdown = ({
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredItems = items.filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
+    item.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   return (
@@ -65,15 +65,12 @@ const SearchableFilterDropdown = ({
                 <span className='text-[14px] font-medium text-(--color-foreground) group-hover:text-(--color-orange-1) transition-colors'>
                   {item}
                 </span>
-                
-                <Checkbox 
-                  checked={isSelected}
-                  onChange={() => onToggle(item)}
-                />
+
+                <Checkbox checked={isSelected} onChange={() => onToggle(item)} />
               </button>
             )
           })}
-          
+
           {filteredItems.length === 0 && (
             <div className='py-4 text-center text-[12px] text-(--color-gray-4)'>
               Không tìm thấy kết quả

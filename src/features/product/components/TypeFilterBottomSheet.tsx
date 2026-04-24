@@ -3,10 +3,11 @@
 import Checkbox from '@/components/ui/Checkbox'
 import BaseBottomSheet from './BaseBottomSheet'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface TypeFilterBottomSheetProps {
   isOpen: boolean
+  initialSelected?: string[]
   onClose: () => void
   onApply: (selectedTypes: string[]) => void
   onReset: () => void
@@ -19,11 +20,19 @@ const TYPE_OPTIONS = [
 
 const TypeFilterBottomSheet = ({
   isOpen,
+  initialSelected = [],
   onClose,
   onApply,
   onReset,
 }: TypeFilterBottomSheetProps) => {
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(initialSelected)
+
+  // Sync state when opening with fresh store values
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTypes(initialSelected)
+    }
+  }, [isOpen, initialSelected])
 
   const toggleType = (key: string) => {
     setSelectedTypes((prev) =>

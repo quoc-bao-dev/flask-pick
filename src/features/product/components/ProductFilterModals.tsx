@@ -5,6 +5,7 @@ import DiscountFilterBottomSheet from './DiscountFilterBottomSheet'
 import TypeFilterBottomSheet from './TypeFilterBottomSheet'
 import MobileSearchOverlay from './MobileSearchOverlay'
 import { useUiProductStore } from '../store/uiProductStore'
+import { useFilterProductStore } from '../store/filterProductStore'
 
 /**
  * ProductFilterModals component
@@ -14,7 +15,6 @@ import { useUiProductStore } from '../store/uiProductStore'
  * @returns {JSX.Element} The rendered modals
  */
 const ProductFilterModals = () => {
-  // --- Hooks (Directly accessing UI state from store) ---
   const {
     isFilterOpen,
     isDiscountFilterOpen,
@@ -23,6 +23,14 @@ const ProductFilterModals = () => {
     setIsDiscountFilterOpen,
     setIsTypeFilterOpen,
   } = useUiProductStore()
+
+  const {
+    discountTypes,
+    setDiscountTypes,
+    discountPercentages,
+    setDiscountPercentages,
+    resetFilters,
+  } = useFilterProductStore()
 
   // --- Handlers ---
   
@@ -50,35 +58,31 @@ const ProductFilterModals = () => {
         isOpen={isFilterOpen}
         onClose={handleCloseMainFilter}
         onApply={handleApplyMainFilter}
-        onReset={() => {
-          // Reset point
-        }}
+        onReset={resetFilters}
       />
 
       {/* 2. Specialized Discount Filter Bottom Sheet */}
       <DiscountFilterBottomSheet
         isOpen={isDiscountFilterOpen}
+        initialSelected={discountTypes}
         onClose={handleCloseDiscountFilter}
-        onApply={(selectedDiscounts) => {
-          console.log('Selected discounts:', selectedDiscounts)
+        onApply={(selected) => {
+          setDiscountTypes(selected)
           setIsDiscountFilterOpen(false)
         }}
-        onReset={() => {
-          // Reset point
-        }}
+        onReset={() => setDiscountTypes([])}
       />
 
       {/* 3. Product Type Filter Bottom Sheet */}
       <TypeFilterBottomSheet
         isOpen={isTypeFilterOpen}
+        initialSelected={discountPercentages} // Assuming "Type" in modal map to percentages or vice versa?
         onClose={handleCloseTypeFilter}
-        onApply={(selectedTypes) => {
-          console.log('Selected types:', selectedTypes)
+        onApply={(selected) => {
+          setDiscountPercentages(selected)
           setIsTypeFilterOpen(false)
         }}
-        onReset={() => {
-          // Reset point
-        }}
+        onReset={() => setDiscountPercentages([])}
       />
 
       {/* 4. Mobile Search Full-screen Overlay */}

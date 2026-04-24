@@ -15,7 +15,6 @@ interface ProductFilterActions {
   setShopTypes: (types: string[]) => void;
   setRatings: (ratings: string[]) => void;
   setTotalProducts: (count: number) => void;
-  setIsMobileSearchOpen: (isOpen: boolean) => void;
   resetFilters: () => void;
 }
 
@@ -30,7 +29,6 @@ const initialFilterValues: ProductFilterValues = {
   shopTypes: [],
   ratings: [],
   totalProducts: 0,
-  isMobileSearchOpen: false,
 };
 
 
@@ -52,9 +50,7 @@ export const useFilterProductStore = create<ProductFilterValues & ProductFilterA
     setShopTypes: (shopTypes) => set({ shopTypes }, false, 'product/setShopTypes'),
     setRatings: (ratings) => set({ ratings }, false, 'product/setRatings'),
     setTotalProducts: (totalProducts) => set({ totalProducts }, false, 'product/setTotalProducts'),
-    setIsMobileSearchOpen: (isMobileSearchOpen) => set({ isMobileSearchOpen }, false, 'product/setIsMobileSearchOpen'),
-    
-    
+
     resetFilters: () => set(initialFilterValues, false, 'product/resetFilters'),
   }))
 );
