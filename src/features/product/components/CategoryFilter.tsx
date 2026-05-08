@@ -53,7 +53,8 @@ const CategoryFilter = () => {
 
   const loadMoreRef = useIntersectionObserver({
     onIntersect: fetchNextPage,
-    enabled: hasNextPage && !isFetchingNextPage,
+    enabled: !!hasNextPage,
+    freeze: isFetchingNextPage,
   })
 
   // --- Effects ---

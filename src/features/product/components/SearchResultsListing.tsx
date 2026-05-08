@@ -49,6 +49,7 @@ const SearchResultsListing = ({
   const loadMoreRef = useIntersectionObserver({
     onIntersect: fetchNextPage,
     enabled: !!hasNextPage,
+    freeze: isFetchingNextPage,
   })
 
   const products = useMemo(() => {
