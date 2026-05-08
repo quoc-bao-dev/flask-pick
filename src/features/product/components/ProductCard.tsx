@@ -91,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     )
   }
 
-  const renderActionButton = (type: 'sale' | 'notify') => {
+  const renderActionButton = (type: 'sale' | 'notify' | 'disable') => {
     if (type === 'sale') {
       return (
         <div className='mt-3'>
@@ -122,6 +122,21 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <p className='text-[#DF1C41]'>{product.timeRemaining}</p>
             )}
           </div>
+        </div>
+      )
+    }
+
+    if (type === 'disable') {
+      return (
+        <div className='mt-3'>
+          <button
+            type='button'
+            disabled
+            className='cursor-not-allowed border border-[#DEE4EE] text-(--color-gray-4) bg-[#F7F9FB] rounded-lg px-4 py-2 text-sm w-full font-medium transition-colors duration-200 focus:outline-none'
+            aria-label={`Hết phiên sale: ${product.title}`}
+          >
+            {product.buttonText}
+          </button>
         </div>
       )
     }

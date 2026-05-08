@@ -6,9 +6,11 @@ export const mapApiProductToUi = (item: ApiProduct, index: number): Product => {
   const sold = item.soldTotal ?? 0;
   const now = new Date();
   const startTime = item.flashSaleStart ? new Date(item.flashSaleStart) : null;
+  const endTime = item.flashSaleEnd ? new Date(item.flashSaleEnd) : null;
 
   const isFuture = startTime ? startTime > now : false;
-  const type: 'sale' | 'notify' = isFuture ? 'notify' : 'sale';
+  const isEnded = endTime ? endTime < now : false;
+  const type: 'sale' | 'notify' | 'disable' = isEnded ? 'disable' : isFuture ? 'notify' : 'sale';
 
   return {
     id: Number(item.itemId) || index,
@@ -31,7 +33,7 @@ export const mapApiProductToUi = (item: ApiProduct, index: number): Product => {
     sold,
     total: sold + item.stock,
     timeRemaining: type === 'sale' ? formatCountdown(item.flashSaleEnd) : '',
-    buttonText: 'Nhắc tôi săn sale',
+    buttonText: type === 'disable' ? 'Hết phiên sale' : 'Nhắc tôi săn sale',
     type,
     flashSaleEnd: item.flashSaleEnd,
   };
