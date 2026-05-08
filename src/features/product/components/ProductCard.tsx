@@ -94,7 +94,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const renderActionButton = (type: 'sale' | 'notify' | 'disable') => {
     if (type === 'sale') {
       return (
-        <div className='mt-3'>
+        <div className='mt-auto pt-3'>
           <div className='flex items-center gap-2' aria-hidden='true'>
             <div className='relative h-2 flex-1 rounded-full bg-[#FFE6CC]'>
               <div
@@ -128,11 +128,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
     if (type === 'disable') {
       return (
-        <div className='mt-3'>
+        <div className='mt-auto pt-3'>
           <button
             type='button'
             disabled
-            className='cursor-not-allowed border border-[#DEE4EE] text-(--color-gray-4) bg-[#F7F9FB] rounded-lg px-4 py-2 text-sm w-full font-medium transition-colors duration-200 focus:outline-none'
+            className='cursor-not-allowed border border-[#DEE4EE] text-(--color-gray-4) bg-[#F7F9FB] rounded-lg md:px-4 py-2 text-sm w-full font-medium transition-colors duration-200 focus:outline-none'
             aria-label={`Hết phiên sale: ${product.title}`}
           >
             {product.buttonText}
@@ -142,10 +142,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }
 
     return (
-      <div className='mt-3'>
+      <div className='mt-auto pt-3'>
         <button
           type='button'
-          className='cursor-pointer border border-(--color-orange-1) text-(--color-orange-1) rounded-lg px-4 py-2 text-sm w-full font-medium hover:bg-(--color-orange-1) hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-(--color-orange-1) focus:ring-offset-1'
+          className=' truncate cursor-pointer border border-(--color-orange-1) text-(--color-orange-1) rounded-lg  md:px-4 py-2 text-sm w-full font-medium hover:bg-(--color-orange-1) hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-(--color-orange-1) focus:ring-offset-1'
           aria-label={`Nhắc tôi săn sale: ${product.title}`}
         >
           {product.buttonText}
@@ -235,7 +235,7 @@ export const ProductCardSkeleton = () => {
         </div>
 
         {/* Action Area */}
-        <div className='mt-3 space-y-3'>
+        <div className='mt-auto pt-3 space-y-3'>
           <div className='h-2 w-full bg-gray-100 animate-pulse rounded-full' />
           <div className='flex justify-between items-center mt-3'>
             <div className='h-4 w-20 bg-gray-100 animate-pulse rounded' />
