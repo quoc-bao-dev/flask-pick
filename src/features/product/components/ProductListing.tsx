@@ -37,7 +37,7 @@ const ProductListing = ({ isFilter = true }: { isFilter?: boolean } = {}) => {
 
   const loadMoreRef = useIntersectionObserver({
     onIntersect: fetchNextPage,
-    enabled: hasNextPage && !isFetchingNextPage,
+    enabled: !!hasNextPage,
   })
 
   const products = useMemo(() => {
@@ -64,16 +64,19 @@ const ProductListing = ({ isFilter = true }: { isFilter?: boolean } = {}) => {
     <>
       <ProductsList products={products} />
 
-      {/* Infinite Scroll Load More Target */}
-      <div ref={loadMoreRef} className='py-10 flex justify-center w-full'>
-        {isFetchingNextPage && (
+      {/* Loading Skeletons */}
+      {isFetchingNextPage && (
+        <div className='py-6 flex justify-center w-full'>
           <div className='grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 lg:gap-4 w-full'>
             {[...Array(5)].map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Infinite Scroll Sentinel - pure invisible target */}
+      <div ref={loadMoreRef} className='h-4 w-full shrink-0' aria-hidden='true' />
     </>
   )
 }
