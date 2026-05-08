@@ -1,11 +1,30 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { BalanceIcon } from '@/components/icons/BalanceIcon'
 import { FlashIcon } from '@/components/icons/FlashIcon'
 import { SparkleIcon } from '@/components/icons/SparkleIcon'
 import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
 import { formatCurrency } from '@/core/utils/format'
+import { formatCountdown } from '@/core/utils/date'
 import { Product } from '../types'
+
+/**
+ * ProductCountdown component - Isolated for optimization
+ */
+const ProductCountdown = ({ endTime }: { endTime: string }) => {
+  const [timeLeft, setTimeLeft] = useState(() => formatCountdown(endTime))
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(formatCountdown(endTime))
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [endTime])
+
+  return <p className='text-[#DF1C41]'>{timeLeft}</p>
+}
 
 /**
  * Props for the ProductCard component
@@ -97,7 +116,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <p className='text-[#596881]'>
               {product.sold}/{product.total} đã bán
             </p>
-            <p className='text-[#DF1C41]'>{product.timeRemaining}</p>
+            {product.flashSaleEnd ? (
+              <ProductCountdown endTime={product.flashSaleEnd} />
+            ) : (
+              <p className='text-[#DF1C41]'>{product.timeRemaining}</p>
+            )}
           </div>
         </div>
       )
@@ -133,7 +156,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Product Information */}
       <div className='flex flex-col flex-1'>
-        <h3 className='text-[16px] leading-[150%] text-(--color-text-strong) line-clamp-2 min-h-[40px]'>
+        <h3 className='text-[14px] leading-[150%] text-(--color-text-strong) line-clamp-2 min-h-[40px]'>
           {product.title}
         </h3>
 
@@ -161,6 +184,51 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {renderActionButton(product.type)}
       </div>
     </article>
+  )
+}
+
+/**
+ * ProductCardSkeleton component
+ * Responsibility: Provide a loading placeholder that mirrors the ProductCard layout.
+ *
+ * @returns {JSX.Element} The rendered skeleton component
+ */
+export const ProductCardSkeleton = () => {
+  return (
+    <div className='flex h-full flex-col gap-3 rounded-xl border border-(--color-border-1) bg-white p-3' aria-hidden="true">
+      {/* Image Skeleton */}
+      <div className='relative w-full aspect-square overflow-hidden rounded-[4px] bg-gray-100 animate-pulse' />
+
+      {/* Info Skeleton */}
+      <div className='flex flex-col flex-1 space-y-3'>
+        {/* Title */}
+        <div className='space-y-2'>
+          <div className='h-4 w-full bg-gray-100 animate-pulse rounded' />
+          <div className='h-4 w-2/3 bg-gray-100 animate-pulse rounded' />
+        </div>
+
+        {/* Pricing */}
+        <div className='flex items-center gap-2 mt-2'>
+          <div className='h-4 w-16 bg-gray-100 animate-pulse rounded' />
+          <div className='h-6 w-12 bg-gray-100 animate-pulse rounded-md' />
+        </div>
+
+        {/* Rating and Price */}
+        <div className='flex items-center justify-between mt-1'>
+          <div className='h-8 w-24 bg-gray-100 animate-pulse rounded' />
+          <div className='h-4 w-10 bg-gray-100 animate-pulse rounded' />
+        </div>
+
+        {/* Action Area */}
+        <div className='mt-3 space-y-3'>
+          <div className='h-2 w-full bg-gray-100 animate-pulse rounded-full' />
+          <div className='flex justify-between items-center mt-3'>
+            <div className='h-4 w-20 bg-gray-100 animate-pulse rounded' />
+            <div className='h-4 w-16 bg-gray-100 animate-pulse rounded' />
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

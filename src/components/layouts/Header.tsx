@@ -1,9 +1,11 @@
 'use client'
 
+import { Suspense } from 'react'
 import { _Image } from '@/core/constant/asset'
 import Logo from '../ui/Logo'
 import DesktopSearch from '../ui/DesktopSearch'
 import MobileSearchBar from '../ui/MobileSearchBar'
+import { useSocialContentQuery } from '@/services/common'
 import Link from 'next/link'
 
 /**
@@ -15,18 +17,21 @@ import Link from 'next/link'
  * @returns {JSX.Element} The rendered header
  */
 const Header = () => {
+  const { data: socialData } = useSocialContentQuery()
+
   // --- Render Sections ---
 
   /**
    * Social Links Section
    */
   const renderSocialLinks = () => {
-    const SOCIAL_PLATFORMS = [
-      { icon: _Image.threads, name: 'Threads', url: '#' },
-      { icon: _Image.telegram, name: 'Telegram', url: '#' },
-      { icon: _Image.facebook, name: 'Facebook', url: '#' },
-      { icon: _Image.zalo, name: 'Zalo', url: '#' },
-    ]
+    const SOCIAL_PLATFORMS =
+      socialData?.data.map((social) => ({
+        icon: _Image[social.code as keyof typeof _Image] as string,
+        name: social.platform,
+        url: social.href,
+        label: social.label,
+      })) || []
 
     return (
       <nav className='flex items-center gap-2' aria-label='Social links'>
@@ -37,15 +42,17 @@ const Header = () => {
             target='_blank'
             rel='noopener noreferrer'
             className='flex size-[40px] items-center justify-center rounded-[10px] border border-(--color-gray-1) bg-white/50 transition-all hover:bg-(--color-primary-50) hover:border-(--color-orange-1) focus:outline-none focus:ring-2 focus:ring-(--color-orange-1)'
-            aria-label={`Theo dõi chúng tôi trên ${social.name}`}
-            title={`Theo dõi ${social.name}`}
+            aria-label={social.label}
+            title={social.label}
           >
-            <img
-              src={social.icon}
-              alt={`${social.name} icon`}
-              className='size-[18px] object-contain'
-              loading='lazy'
-            />
+            {social.icon && (
+              <img
+                src={social.icon}
+                alt={`${social.name} icon`}
+                className='size-[18px] object-contain'
+                loading='lazy'
+              />
+            )}
           </a>
         ))}
       </nav>
@@ -61,7 +68,9 @@ const Header = () => {
         </Link>
 
         {/* Main Desktop Search Container (Hidden on small screens) */}
-        <DesktopSearch />
+        <Suspense fallback={<div className='flex-1 mx-16' />}>
+          <DesktopSearch />
+        </Suspense>
 
         {/* Social Communities Navigation */}
         {renderSocialLinks()}

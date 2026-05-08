@@ -1,7 +1,7 @@
 'use client'
 
 import FilterChip from '@/components/common/FilterChip'
-import { PriceDisplayInput, SectionTitle } from '@/components/common/FilterSection'
+import { SectionTitle } from '@/components/common/FilterSection'
 import FilterSelectButton from '@/components/common/FilterSelectButton'
 import { BalanceIcon } from '@/components/icons/BalanceIcon'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
@@ -9,14 +9,14 @@ import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { RosetteIcon } from '@/components/icons/RosetteIcon'
 import { SparkleIcon } from '@/components/icons/SparkleIcon'
 import Checkbox from '@/components/ui/Checkbox'
-import RangeInput from '@/components/ui/RangeInput'
 import Tooltip from '@/components/ui/Tooltip'
 import { _Image } from '@/core/constant/asset'
-import { formatCurrency } from '@/core/utils/format'
 import { useEffect, useRef, useState } from 'react'
 import { useFilterProductStore } from '../store/filterProductStore'
 import BaseBottomSheet from './BaseBottomSheet'
 import DiscountExplanationModal from './DiscountExplanationModal'
+import { PriceRangeFilter } from './PriceRangeFilter'
+import { useDiscountPercentsQuery } from '@/services/discount-percent'
 
 interface FilterBottomSheetProps {
   isOpen: boolean
@@ -59,6 +59,8 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
   const {
     sortBy,
     setSortBy,
+    categoryIds,
+    setCategoryIds,
     discountTypes,
     setDiscountTypes,
     discountPercentages,
@@ -74,9 +76,14 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
     resetFilters,
   } = useFilterProductStore()
 
+  const { data: discountPercentsData } = useDiscountPercentsQuery()
+
+  const selectedCategory = categoryIds[0] ?? 'all'
+  const setSelectedCategory = (id: string) =>
+    setCategoryIds(id === 'all' ? [] : [id])
+
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [categorySearch, setCategorySearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
   const [isBrandOpen, setIsBrandOpen] = useState(false)
   const [brandSearch, setBrandSearch] = useState('')
   const [isDiscountInfoOpen, setIsDiscountInfoOpen] = useState(false)
@@ -156,24 +163,6 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
     )
   }
 
-  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
-
-  const parseInputNumber = (value: string) => {
-    const numeric = Number(value.replace(/[^\d]/g, '') || '0')
-    return numeric
-  }
-
-  const formatPrice = (value: number) => formatCurrency(value)
-
-  const handleMinInputChange = (value: string) => {
-    const nextMin = clamp(parseInputNumber(value), 0, priceRange[1])
-    setPriceRange([nextMin, priceRange[1]])
-  }
-
-  const handleMaxInputChange = (value: string) => {
-    const nextMax = clamp(parseInputNumber(value), priceRange[0], 10000000)
-    setPriceRange([priceRange[0], nextMax])
-  }
 
 
   return (
@@ -222,7 +211,7 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                   {[
                     { key: 'relevant', label: 'Liên quan' },
                     { key: 'newest', label: 'Mới nhất' },
-                    { key: 'bestselling', label: 'Bán chạy' },
+                    { key: 'best_seller', label: 'Bán chạy' },
                   ].map((option) => (
                     <FilterChip
                       key={option.key}
@@ -307,14 +296,9 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
               <section>
                 <SectionTitle title='% GIẢM GIÁ' />
                 <div className='space-y-3'>
-                  {[
-                    { key: 'over50', label: 'Giảm sốc (Trên 50%)', count: 69 },
-                    { key: '30-50', label: 'Giảm sâu (30% - 50%)', count: 69 },
-                    { key: '10-30', label: 'Giảm vừa (10% - 30%)', count: 69 },
-                    { key: 'under10', label: 'Giảm ít (Dưới 10%)', count: 69 },
-                  ].map((option) => (
+                  {discountPercentsData?.data.map((option) => (
                     <label
-                      key={option.key}
+                      key={option.code}
                       className='flex items-center justify-between cursor-pointer group'
                     >
                       <div className='flex items-center gap-2'>
@@ -326,51 +310,20 @@ const FilterBottomSheet = ({ isOpen, onClose, onApply, onReset }: FilterBottomSh
                         </span>
                       </div>
                       <Checkbox
-                        checked={discountPercentages.includes(option.key)}
-                        onChange={() => toggleDiscountPercentage(option.key)}
+                        checked={discountPercentages.includes(option.code)}
+                        onChange={() => toggleDiscountPercentage(option.code)}
                       />
                     </label>
                   ))}
                 </div>
               </section>
 
-              {/* Khoảng giá */}
-              <section>
-                <SectionTitle title='Khoảng giá' />
-                <div className='space-y-4 pt-2 px-3'>
-                  <RangeInput
-                    min={0}
-                    max={10000000}
-                    step={1000}
-                    value={priceRange}
-                    onChange={setPriceRange}
-                  />
-
-                  <div className='flex items-center'>
-                    <div className='flex-1 min-w-0'>
-                      <PriceDisplayInput
-                        value={priceRange[0]}
-                        placeholder='Tối thiểu'
-                        onChange={(val) => {
-                          const numeric = val === '' ? 0 : Number(val)
-                          setPriceRange([Math.min(numeric, priceRange[1]), priceRange[1]])
-                        }}
-                      />
-                    </div>
-                    <div className='w-5 shrink-0 border-t-2 border-dashed border-(--color-border-1)'></div>
-                    <div className='flex-1 min-w-0'>
-                      <PriceDisplayInput
-                        value={priceRange[1]}
-                        placeholder='Tối đa'
-                        onChange={(val) => {
-                          const numeric = val === '' ? 0 : Number(val)
-                          setPriceRange([priceRange[0], Math.min(numeric, 10000000)])
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <PriceRangeFilter
+                title='Khoảng giá'
+                value={priceRange}
+                onChange={setPriceRange}
+                layout='horizontal'
+              />
 
               <div className='my-2 h-px bg-(--color-border-1)'></div>
 

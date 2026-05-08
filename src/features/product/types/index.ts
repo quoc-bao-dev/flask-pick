@@ -17,6 +17,7 @@ export interface Product {
   timeRemaining: string;
   buttonText: string;
   type: 'sale' | 'notify';
+  flashSaleEnd?: string | null;
 }
 
 /**
@@ -27,6 +28,7 @@ export interface ProductFilterValues {
   activeTab: string;
   activeDeal: string;
   sortBy: string;
+  categoryIds: string[];
   discountTypes: string[];
   discountPercentages: string[];
   priceRange: [number, number];

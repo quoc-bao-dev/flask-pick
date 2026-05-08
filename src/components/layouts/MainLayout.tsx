@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react'
+import { PropsWithChildren, Suspense } from 'react'
 import Header from './Header'
 import ProductListHeader from '../ui/ProductListHeader'
 import SaleTimeSlots from '@/features/product/components/SaleTimeSlots'
@@ -43,7 +43,7 @@ export const MainLayout = ({ children }: PropsWithChildren) => {
       className='hidden lg:block w-[280px] shrink-0'
       aria-label='Product quick filters sidebar'
     >
-      <div className='sticky top-4'>
+      <div className='sticky top-[120px]'>
         {/* Powerful Desktop Sidebar Filter Container */}
         <FilterSidebar />
       </div>
@@ -76,7 +76,9 @@ export const MainLayout = ({ children }: PropsWithChildren) => {
 
       {/* Sticky Section for Time Slots and Mobile Filters */}
       <div className='sticky top-0 z-40 bg-white -mx-3 px-3 pb-2 pt-1'>
-        <MobileSearchBar />
+        <Suspense fallback={<div className='h-[50px]' />}>
+          <MobileSearchBar />
+        </Suspense>
 
         {/* 2. Global Event Context Slots (Shared across all product pages) */}
         <SaleTimeSlots />
@@ -97,7 +99,9 @@ export const MainLayout = ({ children }: PropsWithChildren) => {
       </div>
 
       {/* 5. Modal Layer Core (Bottom sheets, Overlays, etc.) */}
-      <ProductFilterModals />
+      <Suspense fallback={null}>
+        <ProductFilterModals />
+      </Suspense>
     </div>
   )
 }

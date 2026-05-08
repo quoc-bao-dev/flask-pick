@@ -50,27 +50,25 @@ export const BrandFilter = ({ title, selectedBrand, onSelect, brands }: BrandFil
       <button
         type='button'
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full mt-2 py-2 px-3 rounded-[10px] border flex gap-2 items-center justify-between transition-all group ${
-          isOpen
-            ? 'border-(--color-orange-1) bg-white shadow-sm'
-            : 'border-(--color-border-1) bg-white hover:bg-gray-50'
-        }`}
+        className={`w-full mt-2 py-2 px-3 rounded-[10px] border flex gap-2 items-center justify-between transition-all group ${isOpen
+          ? 'border-(--color-orange-1) bg-white shadow-sm'
+          : 'border-(--color-border-1) bg-white hover:bg-gray-50'
+          }`}
         title='Chọn thương hiệu'
       >
         <div className='flex items-center gap-2 flex-1 min-w-0'>
           <RosetteIcon
             size={18}
             color={isOpen ? '#f15024' : '#596881'}
-            className='shrink-0 transition-colors'
+            className=' transition-colors'
           />
           <p className='text-[14px] font-medium text-(--color-gray-2) truncate text-left'>
             {selectedBrand.length > 0 ? selectedBrand.join(', ') : 'Chọn thương hiệu'}
           </p>
         </div>
         <ChevronDownIcon
-          className={`w-5 h-5 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-(--color-orange-1)' : 'text-(--color-gray-2)'
-          }`}
+          className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-(--color-orange-1)' : 'text-(--color-gray-2)'
+            }`}
         />
       </button>
 

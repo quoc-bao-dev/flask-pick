@@ -38,11 +38,23 @@ interface FlashSaleDealsProps {
  */
 const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   // --- Hooks ---
-  const { activeDeal, setActiveDeal } = useFilterProductStore()
+  const { activeDeal, setActiveDeal, setPriceRange } = useFilterProductStore()
 
   // --- Handlers ---
   const handleDealChange = (value: string) => {
     setActiveDeal(value)
+
+    // Map deal value to price range [min, max]
+    const RANGES: Record<string, [number, number]> = {
+      '1000': [0, 1000],
+      '3000': [1001, 3000],
+      '9000': [3001, 9000],
+      '29000': [9001, 29000],
+    }
+
+    if (RANGES[value]) {
+      setPriceRange(RANGES[value])
+    }
   }
 
   // Common Button Rendering

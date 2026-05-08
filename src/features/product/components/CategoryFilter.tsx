@@ -1,8 +1,10 @@
 'use client'
 
 import { _Image } from '@/core/constant/asset'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useFilterProductStore } from '../store/filterProductStore'
+import { useCategoryInfiniteQuery } from '@/services/category'
+import { useIntersectionObserver } from '@/core/hooks/useIntersectionObserver'
 
 /**
  * Interface for Category Option
@@ -14,21 +16,6 @@ interface CategoryOption {
 }
 
 /**
- * Category options for filtering
- */
-const CATEGORY_OPTIONS: CategoryOption[] = [
-  { id: 'all', label: 'Tất cả', icon: _Image.all },
-  { id: 'balo', label: 'Balo & Túi ví nam', icon: _Image.balo },
-  { id: 'pet', label: 'Chăm sóc thú cưng', icon: _Image.snack },
-  { id: 'women-shoes', label: 'Giày dép nữ', icon: _Image.shose },
-  { id: 'grocery', label: 'Bách hóa online', icon: _Image.food },
-  { id: 'men-shoes', label: 'Giày dép nam', icon: _Image['shose-2'] },
-  { id: 'home-care', label: 'Giặt giũ và chăm sóc nhà cửa', icon: _Image.wash },
-  { id: 'tools', label: 'Dụng cụ và thiết bị tiện ích', icon: _Image.tool },
-  { id: 'watch', label: 'Đồng hồ', icon: _Image.watch },
-]
-
-/**
  * CategoryFilter component
  * Responsibility: Display a scrollable list of product categories with icons.
  * Allows users to filter products by category.
@@ -37,9 +24,37 @@ const CATEGORY_OPTIONS: CategoryOption[] = [
  */
 const CategoryFilter = () => {
   // --- Hooks ---
-  const { activeTab, setActiveTab } = useFilterProductStore()
+  const { categoryIds, setCategoryIds } = useFilterProductStore()
+  const activeCategoryId = categoryIds[0] ?? 'all'
   const [isAtEnd, setIsAtEnd] = useState(false)
   const categoryScrollRef = useRef<HTMLDivElement>(null)
+
+  const {
+    data: categoryData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useCategoryInfiniteQuery({
+    limit: 20,
+  })
+
+  const categories = useMemo<CategoryOption[]>(() => {
+    const apiCategories =
+      categoryData?.pages
+        .flatMap((page) => page.data)
+        .map((cat) => ({
+          id: cat.categoryId,
+          label: cat.displayName,
+          icon: _Image.all, // API does not provide an icon, using a fallback
+        })) || []
+
+    return [{ id: 'all', label: 'Tất cả', icon: _Image.all }, ...apiCategories]
+  }, [categoryData?.pages])
+
+  const loadMoreRef = useIntersectionObserver({
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage && !isFetchingNextPage,
+  })
 
   // --- Effects ---
 
@@ -66,12 +81,12 @@ const CategoryFilter = () => {
       }
       window.removeEventListener('resize', checkScrollEnd)
     }
-  }, [])
+  }, [categories]) // Re-run effect if categories change
 
   // --- Handlers ---
 
   const handleCategorySelect = (categoryId: string) => {
-    setActiveTab(categoryId as any)
+    setCategoryIds(categoryId === 'all' ? [] : [categoryId])
   }
 
   const handleScrollRight = () => {
@@ -90,26 +105,25 @@ const CategoryFilter = () => {
         ref={categoryScrollRef}
         className='flex items-center gap-3 overflow-x-auto scrollbar-hide pb-2 pt-2 flex-1 outline-none'
       >
-        {CATEGORY_OPTIONS.map((category) => {
-          const isActive = category.id === activeTab
+        {categories.map((category) => {
+          const isActive = category.id === activeCategoryId
 
           return (
             <button
               key={category.id}
               type='button'
               onClick={() => handleCategorySelect(category.id)}
-              className={`relative flex items-center gap-2 rounded-full px-3 py-2 border-[1.5px] transition-all whitespace-nowrap cursor-pointer focus:outline-none ${
-                isActive
-                  ? 'border-orange-1 bg-white shadow-sm'
-                  : 'border-border-1 bg-white hover:border-border-2'
-              }`}
+              className={`relative flex items-center gap-2 rounded-full px-3 py-2 border-[1.5px] transition-all whitespace-nowrap cursor-pointer focus:outline-none ${isActive
+                ? 'border-orange-1 bg-white shadow-sm'
+                : 'border-border-1 bg-white hover:border-border-2'
+                }`}
               aria-pressed={isActive}
               title={category.label}
             >
               {/* Category Icon */}
-              <span className='h-5 w-5 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden shrink-0'>
+              {/* <span className='h-5 w-5 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden shrink-0'>
                 <img src={category.icon} alt='' className='h-5 w-5 object-contain' loading='lazy' />
-              </span>
+              </span> */}
 
               {/* Category Label */}
               <span className='text-[13px] font-medium text-(--color-text-strong)'>
@@ -141,12 +155,12 @@ const CategoryFilter = () => {
             </button>
           )
         })}
-        {/* Padding for scroll clearance */}
-        <div className='w-[4px] h-[32px] shrink-0'></div>
+        {/* Padding for scroll clearance and infinite scroll target */}
+        <div ref={loadMoreRef} className='w-[4px] h-[32px] shrink-0'></div>
       </div>
 
       {/* Right Gradient Overlay */}
-      {!isAtEnd && (
+      {!isAtEnd && categories.length > 0 && (
         <div
           className='absolute right-0 top-0 bottom-0 w-20 pointer-events-none bg-gradient-to-r from-transparent to-white z-10'
           aria-hidden='true'
@@ -154,7 +168,7 @@ const CategoryFilter = () => {
       )}
 
       {/* Scroll Right Button */}
-      {!isAtEnd && (
+      {!isAtEnd && categories.length > 0 && (
         <button
           type='button'
           onClick={handleScrollRight}

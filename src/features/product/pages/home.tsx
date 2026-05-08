@@ -1,15 +1,11 @@
 'use client'
 
 import ProductListing from '../components/ProductListing'
+import { useFilterUrlSync } from '../utils/useFilterUrlSync'
 
-/**
- * Flash Sale Home Page component
- * Responsibility: High-level layout of the flash sale page.
- * Orchestrates pure components (TimeSlots, Deals) and containerized logic (ProductListing, FilterModals).
- *
- * @returns {JSX.Element} The rendered page
- */
 const Home = () => {
+  useFilterUrlSync()
+
   return (
     <main className='w-full'>
       <ProductListing />

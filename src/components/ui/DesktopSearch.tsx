@@ -1,136 +1,159 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { _Image } from '@/core/constant/asset'
+import { useDebouncedValue } from '@/core/hooks/useDebouncedValue'
+import { useSessionUuid } from '@/core/hooks/useSessionUuid'
+import { useSearchSuggestionsQuery } from '@/services/search'
 import SearchInput from './SearchInput'
+import {
+  MOCK_SHOPS,
+  SearchSuggestionsContent,
+  SUGGESTION_TAGS,
+} from './SearchSuggestionsContent'
 
-/** 
- * Constants for Search Suggestions 
- */
-const SUGGESTION_TAGS = ['hoodie', 'quần baggy', 'sweater', 'túi đeo chéo']
-
-const SUGGESTION_ITEMS = [
-  'teelab studio',
-  'teelab official',
-  'teelab girl wear',
-  'teelab boy wear',
-  'teelab unisex',
-  'teelab accessories',
-]
-
-const MOCK_SHOPS = [
-  {
-    id: 1,
-    name: 'Thời trang gen Z',
-    handle: '@fashion69genz',
-    image: _Image.product,
-  },
-  {
-    id: 2,
-    name: 'Thời trang gen alpha',
-    handle: '@fashion69genalpha',
-    image: _Image.product,
-  },
-  {
-    id: 3,
-    name: 'Thời trang gen beta',
-    handle: '@fashion69genbeta',
-    image: _Image.product,
-  },
-]
+const SEARCH_DEBOUNCE_MS = 300
+const SUGGESTION_LIMIT = 8
 
 /**
  * DesktopSearch component
- * Responsibility: Provide a powerful search experience for desktop users, 
- * including autocomplete suggestions, trending tags, and shop lookups.
- * Reuses the SearchInput component while adding a rich dropdown overlay.
- * 
- * @returns {JSX.Element} The rendered component
+ * Responsibility: Desktop search box with API-backed suggestion dropdown.
  */
 const DesktopSearch = () => {
-  // --- 1. Router ---
   const router = useRouter()
-
-  // --- 2. Refs ---
+  const searchParams = useSearchParams()
+  const urlQuery = searchParams.get('q') || ''
   const searchRef = useRef<HTMLDivElement>(null)
 
-  // --- 2. States ---
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(urlQuery)
   const [showResults, setShowResults] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
 
-  // --- 3. Effects ---
-  
-  // Close search results dropdown when clicking outside the search container
+  // Load recent searches from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('fp_recent_searches')
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to parse recent searches', e)
+      }
+    }
+  }, [])
+
+  // Sync input with URL search param
+  useEffect(() => {
+    setSearchValue(urlQuery)
+  }, [urlQuery])
+
+  const debouncedQuery = useDebouncedValue(searchValue.trim(), SEARCH_DEBOUNCE_MS)
+  const sessionUuid = useSessionUuid()
+
+  const { data: suggestions, isFetching } = useSearchSuggestionsQuery({
+    q: debouncedQuery,
+    limit: SUGGESTION_LIMIT,
+    sessionUuid,
+  })
+
+  // Reset active index when query or suggestions change
+  useEffect(() => {
+    setActiveIndex(-1)
+  }, [debouncedQuery, suggestions])
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false)
+        setActiveIndex(-1)
       }
     }
-
-    if (showResults) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    if (showResults) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showResults])
 
-  // --- 4. Handlers ---
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value)
-    setShowResults(e.target.value.length > 0)
+    setShowResults(true)
   }
 
   const handleClearSearch = () => {
     setSearchValue('')
     setShowResults(false)
+    setActiveIndex(-1)
   }
 
   const handleInputFocus = () => {
-    if (searchValue.length > 0) {
-      setShowResults(true)
-    }
+    setShowResults(true)
   }
 
   const handleSearch = (query: string) => {
     if (!query.trim()) return
+
+    const trimmed = query.trim()
+    const updated = [trimmed, ...recentSearches.filter((t) => t !== trimmed)].slice(0, 10)
+    setRecentSearches(updated)
+    localStorage.setItem('fp_recent_searches', JSON.stringify(updated))
+
     setShowResults(false)
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+    setActiveIndex(-1)
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
   }
 
-  /**
-   * Helper function to highlight matching text in suggestions.
-   */
-  const renderHighlightedText = (text: string, query: string) => {
-    if (!query) return text
-
-    const parts = text.split(new RegExp(`(${query})`, 'gi'))
-    return parts.map((part, index) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={index} className='text-(--color-gray-2) font-bold'>
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    )
+  const handleClearRecent = () => {
+    setRecentSearches([])
+    localStorage.removeItem('fp_recent_searches')
   }
+
+  const focusableItems = useMemo(() => {
+    const all: string[] = []
+    const isQuerying = debouncedQuery.length > 0
+
+    if (!isQuerying) {
+      recentSearches.forEach((term) => all.push(term))
+      SUGGESTION_TAGS.forEach((tag) => all.push(tag))
+    }
+
+    if (suggestions?.data) {
+      suggestions.data.keywords.forEach((k) => all.push(k))
+      suggestions.data.categories.forEach((c) => all.push(c.displayName))
+      suggestions.data.products.forEach((p) => all.push(p.name))
+    }
+
+    MOCK_SHOPS.forEach((s) => all.push(s.name))
+    return all
+  }, [debouncedQuery, suggestions, recentSearches])
+
+  const hasContent = useMemo(() => {
+    const isQuerying = searchValue.trim().length > 0
+    if (isQuerying) return true
+    return recentSearches.length > 0
+  }, [searchValue, recentSearches])
 
   return (
     <div className='relative flex-1 mx-16 xl:block hidden' ref={searchRef}>
-      {/* Search Input Filter Component */}
       <SearchInput
         value={searchValue}
         onChange={handleSearchChange}
         onFocus={handleInputFocus}
         onClear={handleClearSearch}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            handleSearch(searchValue)
+          if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setActiveIndex((prev) => (prev + 1) % focusableItems.length)
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setActiveIndex((prev) => (prev - 1 + focusableItems.length) % focusableItems.length)
+          } else if (e.key === 'Enter') {
+            if (activeIndex >= 0) {
+              handleSearch(focusableItems[activeIndex])
+            } else {
+              handleSearch(searchValue)
+            }
+          } else if (e.key === 'Escape') {
+            setShowResults(false)
           }
         }}
         onSearch={() => handleSearch(searchValue)}
@@ -138,88 +161,22 @@ const DesktopSearch = () => {
         ariaLabel='Tìm kiếm sản phẩm trên máy tính'
       />
 
-      {/* Search Results Dropdown - Suggestions and matching shops */}
-      {showResults && (
-        <div 
-          className='absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-[12px] border border-[#DEE4EE] bg-white shadow-xl animate-in fade-in duration-200'
+      {showResults && hasContent && (
+        <div
+          className='absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-[12px] border border-[#DEE4EE] bg-white shadow-xl animate-in fade-in duration-200 max-h-[80vh] overflow-y-auto scrollbar-custom'
           role='listbox'
           aria-label='Search results suggestions'
         >
-          <div className='p-1'>
-            {/* 1. Suggestions Section - Popular tags and autocomplete items */}
-            <div className='p-3'>
-              <h3 className='mb-3 text-[14px] font-semibold leading-[24px] tracking-tight text-(--color-text-strong)'>
-                Có thể bạn muốn tìm
-              </h3>
-              
-              {/* Trending/Popular Tags */}
-              <div className='flex flex-wrap gap-2 mb-4'>
-                {SUGGESTION_TAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    type='button'
-                    onClick={() => handleSearch(tag)}
-                    className='cursor-pointer rounded-[10px] bg-[#F7F9FB] px-3 py-1.5 text-[14px] font-medium leading-[20px] text-[#111625] transition-all hover:bg-gray-100 hover:text-(--color-orange-1)'
-                    title={`Tìm kiếm: ${tag}`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-
-              {/* Autocomplete Result Items */}
-              <div className='space-y-2'>
-                {SUGGESTION_ITEMS.map((item, index) => (
-                  <button
-                    key={index}
-                    type='button'
-                    onClick={() => handleSearch(item)}
-                    className='w-full cursor-pointer rounded px-2 py-1.5 text-left text-[14px] font-semibold leading-[20px] text-[#111625] transition-colors hover:bg-gray-50'
-                    title={item}
-                  >
-                    {renderHighlightedText(item, searchValue)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Visual Divider */}
-            <div className='mx-3 h-px bg-[#DEE4EE]' aria-hidden='true'></div>
-
-            {/* 2. Shop Section - Related official shops */}
-            <div className='p-3'>
-              <h3 className='mb-3 text-[14px] font-semibold leading-[24px] tracking-tight text-(--color-text-strong)'>
-                Cửa hàng gợi ý
-              </h3>
-              <div className='space-y-3'>
-                {MOCK_SHOPS.map((shop) => (
-                  <button
-                    key={shop.id}
-                    type='button'
-                    className='flex gap-3 items-center w-full rounded-lg px-2 py-2 transition-all hover:bg-gray-50 cursor-pointer group'
-                    title={`Truy cập shop ${shop.name}`}
-                  >
-                    <div className='h-10 w-10 shrink-0 overflow-hidden rounded-full border border-(--color-border-1) group-hover:border-(--color-orange-1) transition-colors'>
-                      <img
-                        src={shop.image}
-                        alt={`${shop.name} logo`}
-                        className='h-full w-full object-cover'
-                        loading='lazy'
-                      />
-                    </div>
-                    <div className='flex-1 text-left'>
-                      <p className='text-[14px] font-semibold tracking-[-0.6%] text-[#111625] group-hover:text-(--color-orange-1) transition-colors'>
-                        {shop.name}
-                      </p>
-                      <p className='text-[13px] font-medium text-(--color-gray-4)'>
-                        {shop.handle}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <SearchSuggestionsContent
+            suggestions={suggestions?.data}
+            query={debouncedQuery}
+            isFetching={isFetching}
+            onSearch={handleSearch}
+            activeIndex={activeIndex}
+            showTags={false}
+            recentSearches={recentSearches}
+            onClearRecent={handleClearRecent}
+          />
         </div>
       )}
     </div>

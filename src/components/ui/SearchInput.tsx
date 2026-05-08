@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { SearchIcon } from '../icons/SearchIcon'
 import { CameraIcon } from '../icons/CameraIcon'
 import { CloseIcon } from '../icons/CloseIcon'
@@ -40,12 +41,26 @@ const SearchInput = ({
   onKeyDown,
   onSearch,
 }: SearchInputProps) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleWrapperClick = () => {
+    inputRef.current?.focus()
+  }
+
   return (
     <div 
-      className={`flex items-center gap-2 rounded-[12px] border-2 border-(--color-orange-1) bg-white px-3 py-2 shadow-sm transition-shadow focus-within:shadow-md ${className}`}
+      className={`flex items-center gap-2 rounded-[12px] border-2 border-(--color-orange-1) bg-white px-3 py-2 shadow-sm transition-shadow focus-within:shadow-md cursor-text ${className}`}
+      onClick={handleWrapperClick}
     >
       {/* 1. Search Icon */}
-      <button onClick={onSearch} type='button' className='focus:outline-none'>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation()
+          onSearch?.()
+        }} 
+        type='button' 
+        className='focus:outline-none'
+      >
         <SearchIcon
           size={18}
           color='#8796AF'
@@ -55,6 +70,7 @@ const SearchInput = ({
 
       {/* 2. Main Input Field */}
       <input
+        ref={inputRef}
         type='text'
         value={value}
         onChange={onChange}
@@ -66,7 +82,7 @@ const SearchInput = ({
       />
 
       {/* 3. Action Buttons Section */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
         {/* Dynamic Clear Button */}
         {showClearButton && value && (
           <button

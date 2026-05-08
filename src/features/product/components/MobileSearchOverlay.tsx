@@ -1,16 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { SearchIcon } from '@/components/icons/SearchIcon'
 import { CameraIcon } from '@/components/icons/CameraIcon'
 import { CloseIcon } from '@/components/icons/CloseIcon'
-import { TrashIcon } from '@/components/icons/TrashIcon'
-import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
 import { useUiProductStore } from '../store/uiProductStore'
-import { mockProducts } from '@/core/constant/products'
-import { formatCurrency } from '@/core/utils/format'
-import Image from 'next/image'
+import { useDebouncedValue } from '@/core/hooks/useDebouncedValue'
+import { useSessionUuid } from '@/core/hooks/useSessionUuid'
+import { useSearchSuggestionsQuery } from '@/services/search'
+import { SearchSuggestionsContent } from '@/components/ui/SearchSuggestionsContent'
+
+const SEARCH_DEBOUNCE_MS = 300
+const SUGGESTION_LIMIT = 8
+const RECENT_SEARCHES_KEY = 'fp_recent_searches'
+const MAX_RECENT_SEARCHES = 10
 
 /**
  * MobileSearchOverlay component
@@ -21,16 +25,42 @@ import Image from 'next/image'
  */
 const MobileSearchOverlay = () => {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const urlQuery = searchParams.get('q') || ''
   const { isMobileSearchOpen, setIsMobileSearchOpen } = useUiProductStore()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [recentSearches, setRecentSearches] = useState([
-    'Tai nghe',
-    'Loa bluetooth',
-    'Dây sạc type C',
-    'tuần lộc nhồi bông',
-    'trái châu noel',
-    'bao lì xì',
-  ])
+  const [searchTerm, setSearchTerm] = useState(urlQuery)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(RECENT_SEARCHES_KEY)
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to parse recent searches', e)
+      }
+    }
+  }, [])
+
+  // Sync input with URL search param
+  useEffect(() => {
+    setSearchTerm(urlQuery)
+  }, [urlQuery])
+
+  const debouncedQuery = useDebouncedValue(searchTerm.trim(), SEARCH_DEBOUNCE_MS)
+  const sessionUuid = useSessionUuid()
+
+  const { data: suggestions, isFetching } = useSearchSuggestionsQuery(
+    { q: debouncedQuery, limit: SUGGESTION_LIMIT, sessionUuid },
+    { enabled: isMobileSearchOpen },
+  )
+
+  const suggestionItems = suggestions?.data.keywords ?? []
+  const categorySuggestions = suggestions?.data.categories ?? []
+  const productSuggestions = suggestions?.data.products ?? []
+
+  const isQuerying = debouncedQuery.length > 0
 
   // Block body scroll when overlay is open
   useEffect(() => {
@@ -48,13 +78,24 @@ const MobileSearchOverlay = () => {
   if (!isMobileSearchOpen) return null
 
   const handleSearch = (query: string) => {
-    if (!query.trim()) return
+    const trimmed = query.trim()
+    if (!trimmed) return
+
+    // Update recent searches
+    const updated = [trimmed, ...recentSearches.filter((t) => t !== trimmed)].slice(
+      0,
+      MAX_RECENT_SEARCHES,
+    )
+    setRecentSearches(updated)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+
     setIsMobileSearchOpen(false)
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
   }
 
   const handleClearRecent = () => {
     setRecentSearches([])
+    localStorage.removeItem(RECENT_SEARCHES_KEY)
   }
 
   const handleClose = () => {
@@ -118,83 +159,17 @@ const MobileSearchOverlay = () => {
       </header>
 
       {/* Content Area */}
-      <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
-        {/* Recent Searches Section */}
-        {recentSearches.length > 0 && (
-          <section>
-            <div className='flex items-center justify-between mb-3'>
-              <h2 className='text-[14px] font-semibold text-(--color-text-strong) tracking-tight'>
-                Tìm kiếm gần đây
-              </h2>
-              <button
-                onClick={handleClearRecent}
-                className='text-(--color-gray-3) hover:text-red-500 transition-colors'
-              >
-                <TrashIcon size={20} />
-              </button>
-            </div>
-            <div className='flex flex-wrap gap-2'>
-              {recentSearches.map((term) => (
-                <button
-                  key={term}
-                  onClick={() => handleSearch(term)}
-                  className='px-3 py-1.5 bg-(--color-surface-50) rounded-[10px] text-[12px] text-(--color-text-strong) hover:bg-gray-200/80 transition-colors'
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Product Suggestions Section */}
-        <section>
-          <h2 className='text-[14px] font-semibold text-(--color-text-strong) mb-3 tracking-tight'>
-            Gợi ý sản phẩm
-          </h2>
-          <div className='space-y-3'>
-            {mockProducts.slice(0, 4).map((product) => (
-              <div
-                key={product.id}
-                onClick={() => handleSearch(product.title)}
-                className='flex gap-3 p-3 border border-(--color-border-1) rounded-xl bg-white active:bg-gray-50 transition-colors cursor-pointer'
-              >
-                <div className='relative size-[80px] shrink-0 rounded-md overflow-hidden bg-gray-100'>
-                  <Image
-                    src={product.image}
-                    alt={product.title}
-                    fill
-                    className='object-cover'
-                  />
-                </div>
-                <div className='flex-1 flex flex-col justify-between min-w-0'>
-                  <h3 className='text-[13px] text-(--color-text-strong) line-clamp-2 leading-tight'>
-                    {product.title}
-                  </h3>
-                  <div className='flex items-end justify-between mt-1'>
-                    <div>
-                      <div className='flex items-center gap-2 mb-0.5'>
-                        <span className='text-[12px] text-(--color-gray-4) line-through'>
-                          {formatCurrency(product.originalPrice)}đ
-                        </span>
-                        <span className='px-1 py-0.5 bg-[#FBE6C4] rounded-[4px] text-[10px] font-medium text-[#DF1C41]'>
-                          -{product.discountPercent}%
-                        </span>
-                      </div>
-                      <div className='text-[16px] font-medium text-(--color-orange-1)'>
-                        {formatCurrency(product.currentPrice)} <span className='text-[12px] font-medium underline -ml-1'>đ</span>
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-0.5 text-[#FFB800]'>
-                      <StarSmallIcon size={14} />
-                      <span className='text-[12px] font-medium text-(--color-gray-2)'>{product.rating}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-10'>
+        {/* Unified Suggestions Section */}
+        <SearchSuggestionsContent
+          suggestions={suggestions?.data}
+          query={debouncedQuery}
+          isFetching={isFetching}
+          onSearch={handleSearch}
+          showTags={false}
+          recentSearches={recentSearches}
+          onClearRecent={handleClearRecent}
+        />
       </div>
     </div>
   )

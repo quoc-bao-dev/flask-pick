@@ -29,12 +29,12 @@
   /* keep space reserved so no layout shift */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 .scrollbar-custom::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 5px;
+  width: 5px;
   background: transparent;
 }
 
@@ -50,47 +50,30 @@
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
   background: transparent;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 .scrollbar-custom:hover,
 .scrollbar-custom:active,
 .scrollbar-custom:focus {
-  scrollbar-color: color-mix(in srgb, var(--color-gray-3) 60%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--color-gray-4) 40%, transparent) transparent;
 }
 
 .scrollbar-custom:hover::-webkit-scrollbar-track,
 .scrollbar-custom:active::-webkit-scrollbar-track,
 .scrollbar-custom:focus::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--color-border-1) 50%, transparent);
+  background: transparent;
 }
 
 .scrollbar-custom:hover::-webkit-scrollbar-thumb,
 .scrollbar-custom:active::-webkit-scrollbar-thumb,
 .scrollbar-custom:focus::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-gray-2) 40%, #e2e8f0) 0%,
-    var(--color-gray-3) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--color-border-2) 60%, transparent);
-  box-shadow: 0 1px 6px color-mix(in srgb, var(--color-gray-2) 20%, transparent);
+  background: color-mix(in srgb, var(--color-gray-4) 30%, transparent);
 }
 
-.scrollbar-custom:hover::-webkit-scrollbar-thumb:hover,
-.scrollbar-custom:active::-webkit-scrollbar-thumb:hover,
-.scrollbar-custom:focus::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    var(--color-gray-2) 0%,
-    color-mix(in srgb, var(--color-gray-2) 40%, var(--color-gray-3)) 100%
-  );
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-gray-2) 35%, transparent);
+.scrollbar-custom:hover::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-gray-4) 60%, transparent);
 }
 
 .scrollbar-hide {

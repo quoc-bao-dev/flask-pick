@@ -1,4 +1,7 @@
-import React, { ReactNode } from 'react'
+'use client'
+
+import React, { ReactNode, useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface TooltipProps {
   content: ReactNode
@@ -8,12 +11,50 @@ interface TooltipProps {
 }
 
 const Tooltip = ({ content, children, position = 'bottom', className = '' }: TooltipProps) => {
-  const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-  }
+  const [isVisible, setIsVisible] = useState(false)
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ top: -9999, left: -9999 }) // Start off-screen
+
+  useEffect(() => {
+    if (isVisible && triggerRef.current && tooltipRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      const tooltipRect = tooltipRef.current.getBoundingClientRect()
+      
+      let top = 0
+      let left = 0
+
+      switch (position) {
+        case 'top':
+          top = rect.top - tooltipRect.height - 8
+          left = rect.left + rect.width / 2 - tooltipRect.width / 2
+          break
+        case 'bottom':
+          top = rect.bottom + 8
+          left = rect.left + rect.width / 2 - tooltipRect.width / 2
+          break
+        case 'left':
+          top = rect.top + rect.height / 2 - tooltipRect.height / 2
+          left = rect.left - tooltipRect.width - 8
+          break
+        case 'right':
+          top = rect.top + rect.height / 2 - tooltipRect.height / 2
+          left = rect.right + 8
+          break
+      }
+
+      setCoords({ top, left })
+    }
+  }, [isVisible, position])
+
+  // Hide on scroll to prevent detached tooltip
+  useEffect(() => {
+    if (isVisible) {
+      const handleScroll = () => setIsVisible(false)
+      window.addEventListener('scroll', handleScroll, true) // capture phase for any scroll
+      return () => window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [isVisible])
 
   const arrowClasses = {
     top: 'top-full left-1/2 -translate-x-1/2 border-t-black',
@@ -23,18 +64,32 @@ const Tooltip = ({ content, children, position = 'bottom', className = '' }: Too
   }
 
   return (
-    <div className={`relative flex items-center group/tooltip ${className}`}>
-      {children}
-      <div
-        className={`absolute z-100 hidden group-hover/tooltip:block px-2.5 py-1.5 text-[12px] font-medium text-white bg-black rounded shadow-lg whitespace-nowrap animate-in fade-in zoom-in-95 duration-200 pointer-events-none ${positionClasses[position]}`}
+    <>
+      <div 
+        ref={triggerRef}
+        className={`relative inline-flex items-center ${className}`}
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
       >
-        {content}
-        <div
-          className={`absolute border-[5px] border-transparent pointer-events-none ${arrowClasses[position]}`}
-        ></div>
+        {children}
       </div>
-    </div>
+      
+      {isVisible && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={tooltipRef}
+          style={{ top: coords.top, left: coords.left }}
+          className={`fixed z-[9999] px-2.5 py-1.5 text-[12px] font-medium text-white bg-black rounded shadow-lg whitespace-nowrap animate-in fade-in zoom-in-95 duration-200 pointer-events-none`}
+        >
+          {content}
+          <div
+            className={`absolute border-[5px] border-transparent pointer-events-none ${arrowClasses[position]}`}
+          ></div>
+        </div>,
+        document.body
+      )}
+    </>
   )
 }
 
 export default Tooltip
+

@@ -1,3 +1,14 @@
+export interface SocialContent {
+  code: string;
+  platform: string;
+  label: string;
+  href: string;
+}
+
+export interface SocialContentResponse {
+  data: SocialContent[];
+}
+
 export interface ApiResponse<T> {
   data: T;
 }

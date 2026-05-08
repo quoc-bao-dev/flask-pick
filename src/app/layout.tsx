@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://flashpick.vn'),
   title: {
     default: 'Flash Pick - Shopee Flash Sale & Deal Hời Mỗi Ngày',
     template: '%s | Flash Pick',

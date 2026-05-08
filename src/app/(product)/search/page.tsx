@@ -1,3 +1,5 @@
+'use client'
+
 import SearchPage from '@/features/product/pages/search'
 
 import { Suspense } from 'react'

@@ -1,5 +1,6 @@
 'use client'
 
+import { useFlashSaleSessionsQuery } from '@/services/flash-sale'
 import { useFilterProductStore } from '../store/filterProductStore'
 
 /**
@@ -12,17 +13,6 @@ interface TimeSlot {
 }
 
 /**
- * Mock data for Flash Sale time slots
- */
-const TIME_SLOTS: TimeSlot[] = [
-  { key: 'all', title: 'Tất cả' },
-  { key: '19', title: '19:00', subtitle: 'Đang diễn ra' },
-  { key: '21', title: '21:00', subtitle: 'Sắp diễn ra' },
-  { key: '00', title: '00:00', subtitle: 'Ngày mai' },
-  { key: '02', title: '02:00', subtitle: 'Ngày kia' },
-]
-
-/**
  * SaleTimeSlots component - Displays available time slots for flash sales
  *
  * @returns {JSX.Element} The rendered component
@@ -30,10 +20,31 @@ const TIME_SLOTS: TimeSlot[] = [
 const SaleTimeSlots = () => {
   // --- Hooks ---
   const { activeTab, setActiveTab } = useFilterProductStore()
+  const { data: sessionResponse, isLoading } = useFlashSaleSessionsQuery({ limit: 10 })
+
+  // --- Derived State ---
+  const timeSlots: TimeSlot[] = [
+    { key: 'all', title: 'Tất cả' },
+    ...(sessionResponse?.data?.map((session) => ({
+      key: session.promotionId,
+      title: session.name,
+      subtitle: session.isCurrentlyActive ? 'Đang diễn ra' : 'Sắp diễn ra',
+    })) || []),
+  ]
 
   // --- Handlers ---
   const handleTabChange = (key: string) => {
     setActiveTab(key)
+  }
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center gap-6 overflow-x-auto scrollbar-hide xl:pt-4 h-[60px] xl:h-[100px]'>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className='min-w-[80px] xl:min-w-[280px] h-12 bg-gray-100 animate-pulse rounded-lg' />
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -41,7 +52,7 @@ const SaleTimeSlots = () => {
       <div className='relative border-b border-(--color-border-1)'>
         {/* Scrollable Container */}
         <div className='flex min-w-full items-stretch gap-6 h-full overflow-x-auto scrollbar-hide xl:pt-4'>
-          {TIME_SLOTS.map((tab) => {
+          {timeSlots.map((tab) => {
             const isActive = tab.key === activeTab
 
             return (

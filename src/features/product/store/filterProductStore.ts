@@ -3,11 +3,11 @@ import { devtools } from 'zustand/middleware';
 
 import { ProductFilterValues } from '../types';
 
-
 interface ProductFilterActions {
   setActiveTab: (tab: string) => void;
   setActiveDeal: (deal: string) => void;
   setSortBy: (sortBy: string) => void;
+  setCategoryIds: (ids: string[]) => void;
   setDiscountTypes: (types: string[]) => void;
   setDiscountPercentages: (percentages: string[]) => void;
   setPriceRange: (range: [number, number]) => void;
@@ -18,14 +18,15 @@ interface ProductFilterActions {
   resetFilters: () => void;
 }
 
-const initialFilterValues: ProductFilterValues = {
+export const initialFilterValues: ProductFilterValues = {
   activeTab: 'all',
   activeDeal: '1000',
   sortBy: 'relevant',
+  categoryIds: [],
   discountTypes: [],
   discountPercentages: [],
-  priceRange: [69000, 8869000],
-  selectedBrands: ['Samsung'],
+  priceRange: [0, 1000],
+  selectedBrands: [],
   shopTypes: [],
   ratings: [],
   totalProducts: 0,
@@ -43,6 +44,7 @@ export const useFilterProductStore = create<ProductFilterValues & ProductFilterA
     setActiveTab: (tab) => set({ activeTab: tab }, false, 'product/setActiveTab'),
     setActiveDeal: (deal) => set({ activeDeal: deal }, false, 'product/setActiveDeal'),
     setSortBy: (sortBy) => set({ sortBy }, false, 'product/setSortBy'),
+    setCategoryIds: (categoryIds) => set({ categoryIds }, false, 'product/setCategoryIds'),
     setDiscountTypes: (discountTypes) => set({ discountTypes }, false, 'product/setDiscountTypes'),
     setDiscountPercentages: (discountPercentages) => set({ discountPercentages }, false, 'product/setDiscountPercentages'),
     setPriceRange: (priceRange) => set({ priceRange }, false, 'product/setPriceRange'),

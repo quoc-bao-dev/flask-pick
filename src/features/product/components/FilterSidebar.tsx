@@ -9,6 +9,7 @@ import { SparkleIcon } from '@/components/icons/SparkleIcon'
 import { BalanceIcon } from '@/components/icons/BalanceIcon'
 import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
 import { useDiscountTypesQuery } from '@/services/discount-type'
+import { useDiscountPercentsQuery } from '@/services/discount-percent'
 
 /**
  * FilterSidebar component
@@ -42,6 +43,7 @@ const FilterSidebar = () => {
 
   // API Data
   const { data: discountTypesData } = useDiscountTypesQuery()
+  const { data: discountPercentsData } = useDiscountPercentsQuery()
 
   // --- Handlers ---
 
@@ -56,7 +58,7 @@ const FilterSidebar = () => {
 
   return (
     <nav
-      className='space-y-6 p-4 rounded-[16px] bg-white border border-(--color-border-1) shadow-sm'
+      className='space-y-6 p-4 rounded-[16px] bg-white border border-(--color-border-1) shadow-sm max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-custom'
       aria-label='Filter products'
     >
       {/* 1. Header Section */}
@@ -72,7 +74,7 @@ const FilterSidebar = () => {
         options={[
           { key: 'relevant', label: 'Liên quan' },
           { key: 'newest', label: 'Mới nhất' },
-          { key: 'bestselling', label: 'Bán chạy' },
+          { key: 'best_seller', label: 'Bán chạy' },
         ]}
         selectedValue={sortBy}
         onChange={setSortBy}
@@ -100,12 +102,14 @@ const FilterSidebar = () => {
 
       <FilterCheckboxGroup
         title='% giảm giá'
-        options={[
-          { key: '>50', label: 'Giảm sốc (Trên 50%)', count: 69 },
-          { key: '30-50', label: 'Giảm sâu (30% - 50%)', count: 69 },
-          { key: '10-30', label: 'Giảm vừa (10% - 30%)', count: 69 },
-          { key: '<10', label: 'Giảm ít (Dưới 10%)', count: 69 },
-        ]}
+        options={
+          discountPercentsData?.data.map((item) => ({
+            key: item.code,
+            label: item.label,
+            count: item.count,
+            tooltip: item.description,
+          })) || []
+        }
         selectedValues={discountPercentages}
         onChange={(key: string) => toggleFilter(discountPercentages, setDiscountPercentages, key)}
       />
