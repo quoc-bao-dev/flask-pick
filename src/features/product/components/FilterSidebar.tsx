@@ -80,6 +80,8 @@ const FilterSidebar = () => {
         onChange={setSortBy}
       />
 
+      <PriceRangeFilter title='Khoảng giá' value={priceRange} onChange={setPriceRange} />
+
       <FilterCheckboxGroup
         title='Loại giảm giá'
         options={
@@ -114,7 +116,6 @@ const FilterSidebar = () => {
         onChange={(key: string) => toggleFilter(discountPercentages, setDiscountPercentages, key)}
       />
 
-      <PriceRangeFilter title='Khoảng giá' value={priceRange} onChange={setPriceRange} />
 
       {/* 5. Apply Button */}
       <button

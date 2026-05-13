@@ -20,12 +20,12 @@ interface ProductFilterActions {
 
 export const initialFilterValues: ProductFilterValues = {
   activeTab: 'all',
-  activeDeal: '1000',
+  activeDeal: 'all',
   sortBy: 'relevant',
   categoryIds: [],
   discountTypes: [],
   discountPercentages: [],
-  priceRange: [0, 1000],
+  priceRange: [0, 10_000_000],
   selectedBrands: [],
   shopTypes: [],
   ratings: [],

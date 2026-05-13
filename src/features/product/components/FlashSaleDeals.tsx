@@ -1,25 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import FilterChip from '@/components/common/FilterChip'
+import { usePricePresetQuery } from '@/services/price-preset'
 import { useFilterProductStore } from '../store/filterProductStore'
 
-/**
- * Interface for Flash Sale Deal Option
- */
-interface DealOption {
-  value: string
-  label: string
-}
-
-/**
- * Deal options for Flash Sale
- */
-const DEAL_OPTIONS: DealOption[] = [
-  { value: '1000', label: 'Từ 1,000đ' },
-  { value: '3000', label: 'Từ 3,000đ' },
-  { value: '9000', label: 'Từ 9,000đ' },
-  { value: '29000', label: 'Từ 29,000đ' },
-]
+const MAX_PRICE = 10_000_000
 
 /**
  * Props for the FlashSaleDeals component
@@ -39,35 +25,45 @@ interface FlashSaleDealsProps {
 const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   // --- Hooks ---
   const { activeDeal, setActiveDeal, setPriceRange } = useFilterProductStore()
+  const { data: presetData } = usePricePresetQuery()
+
+  // Build deal options from API data with a leading "Tất cả" tab
+  const dealOptions = useMemo(() => {
+    const allTab = { code: 'all', label: 'Tất cả', minPrice: 0, maxPrice: MAX_PRICE }
+
+    if (!presetData?.data?.length) return [allTab]
+
+    const apiTabs = presetData.data.map((p) => ({
+      code: p.code,
+      label: p.label,
+      minPrice: p.minPrice,
+      maxPrice: p.maxPrice ?? MAX_PRICE,
+    }))
+
+    return [allTab, ...apiTabs]
+  }, [presetData])
 
   // --- Handlers ---
-  const handleDealChange = (value: string) => {
-    setActiveDeal(value)
+  const handleDealChange = (code: string) => {
+    setActiveDeal(code)
 
-    // Map deal value to price range [min, max]
-    const RANGES: Record<string, [number, number]> = {
-      '1000': [0, 1000],
-      '3000': [1001, 3000],
-      '9000': [3001, 9000],
-      '29000': [9001, 29000],
-    }
-
-    if (RANGES[value]) {
-      setPriceRange(RANGES[value])
+    const selected = dealOptions.find((o) => o.code === code)
+    if (selected) {
+      setPriceRange([selected.minPrice, selected.maxPrice])
     }
   }
 
   // Common Button Rendering
   const renderButtons = () => {
-    return DEAL_OPTIONS.map((option) => {
-      const isActive = option.value === activeDeal
+    return dealOptions.map((option) => {
+      const isActive = option.code === activeDeal
 
       return (
         <FilterChip
-          key={option.value}
+          key={option.code}
           label={option.label}
           isActive={isActive}
-          onClick={() => handleDealChange(option.value)}
+          onClick={() => handleDealChange(option.code)}
           variant={variant}
         />
       )

@@ -1,7 +1,6 @@
 'use client'
 
 import FlashSaleDeals from '@/features/product/components/FlashSaleDeals'
-import CategoryFilter from '@/features/product/components/CategoryFilter'
 import { useFilterProductStore } from '@/features/product/store/filterProductStore'
 
 /**
@@ -20,10 +19,10 @@ const ProductListHeader = () => {
   return (
     <header className='hidden lg:block space-y-4 mb-6' aria-label='Product results header'>
       {/* 1. Header Information Section */}
-      <div className='flex items-start justify-between'>
+      <div className='flex items-center justify-between'>
         {/* Title and Product Count */}
         <div className='flex items-center gap-4'>
-          <h1 className='text-[24px] font-semibold text-(--color-text-strong) tracking-tight'>
+          <h1 className='text-[20px] font-semibold text-(--color-text-strong) tracking-tight'>
             Danh sách sản phẩm
           </h1>
 
@@ -33,7 +32,7 @@ const ProductListHeader = () => {
             aria-label={`${totalProducts} products found`}
           >
             {totalProducts.toLocaleString('vi-VN')}
-            <span className='ml-1 text-(--color-gray-2) font-medium'>sản phẩm</span>
+            <span className='ml-1 text-(--color-gray-2) font-medium truncate'>sản phẩm</span>
           </div>
         </div>
 
