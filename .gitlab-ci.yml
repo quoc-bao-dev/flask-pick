@@ -146,7 +146,7 @@ build-image:
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
-    - printf '%s' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
@@ -206,7 +206,7 @@ deploy-prod:
   variables:
     DEPLOY_DIR: "$PROD_DEPLOY_DIR"
 
-    DEPLOY_SSH_KEY: "$PROD_SSH_PRIVATE_KEY"
+    DEPLOY_SSH_KEY: "$PROD_SSH_KEY"
     DEPLOY_SSH_KNOWN_HOSTS: "$PROD_SSH_KNOWN_HOSTS"
 
     DEPLOY_SERVER_USER: "$PROD_SERVER_USER"
