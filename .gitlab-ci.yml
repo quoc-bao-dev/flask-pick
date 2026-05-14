@@ -1,0 +1,222 @@
+variables:
+  APP_NAME: "flash-pick-frontend"
+
+  DOCKER_REGISTRY: "registry.flashpick.vn"
+  NODE_IMAGE: "node:22-alpine"
+
+  IMAGE_NAME: "flashpick/frontend"
+  IMAGE_TAG: "$DOCKER_REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+
+  STAGING_DEPLOY_DIR: "/home/huy/devops"
+  PROD_DEPLOY_DIR: "/home/huy/devops"
+
+stages:
+  - build
+  - deploy
+
+# =========================================================
+# LARK NOTIFICATION
+# =========================================================
+.lark_notification:
+  after_script:
+    - apk add --no-cache curl jq || true
+    - |
+      if [ -z "$LARK_APP_ID" ] || [ -z "$LARK_APP_SECRET" ] || [ -z "$LARK_CHAT_ID" ]; then
+        echo "Lark notification skipped"
+        exit 0
+      fi
+
+      AUTH_RESP=$(curl -s -X POST "https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal" \
+        -H "Content-Type: application/json" \
+        -d "{\"app_id\":\"$LARK_APP_ID\",\"app_secret\":\"$LARK_APP_SECRET\"}")
+
+      TOKEN=$(echo "$AUTH_RESP" | jq -r '.tenant_access_token // empty')
+
+      if [ -z "$TOKEN" ]; then
+        echo "Failed to get Lark token"
+        exit 0
+      fi
+
+      [ "$CI_JOB_STATUS" = "success" ] && COLOR="green" || COLOR="red"
+
+      TITLE="FlashPick FE CI: $CI_JOB_NAME ($CI_JOB_STATUS)"
+
+      PAYLOAD=$(jq -n \
+        --arg rid "$LARK_CHAT_ID" \
+        --arg title "$TITLE" \
+        --arg clr "$COLOR" \
+        --arg app "$APP_NAME" \
+        --arg branch "$CI_COMMIT_REF_NAME" \
+        --arg commit "$CI_COMMIT_SHORT_SHA" \
+        --arg author "$GITLAB_USER_NAME" \
+        --arg message "$CI_COMMIT_MESSAGE" \
+        --arg pipeline "$CI_PIPELINE_URL" \
+        '{
+          receive_id: $rid,
+          msg_type: "interactive",
+          content: ({
+            header: {
+              title: {
+                tag: "plain_text",
+                content: $title
+              },
+              template: $clr
+            },
+            elements: [
+              {
+                tag: "div",
+                text: {
+                  tag: "lark_md",
+                  content: (
+                    [
+                      "**App:** " + $app,
+                      "**Branch:** " + $branch,
+                      "**Commit:** " + $commit,
+                      "**Author:** " + $author,
+                      "**Message:** " + $message
+                    ] | join("\n")
+                  )
+                }
+              },
+              {
+                tag: "action",
+                actions: [
+                  {
+                    tag: "button",
+                    text: {
+                      tag: "plain_text",
+                      content: "View Pipeline"
+                    },
+                    type: "primary",
+                    url: $pipeline
+                  }
+                ]
+              }
+            ]
+          } | tojson)
+        }')
+
+      curl -s -X POST \
+        "https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=chat_id" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$PAYLOAD"
+
+# =========================================================
+# BASE
+# =========================================================
+.frontend_base:
+  image: "$NODE_IMAGE"
+  before_script:
+    - corepack enable || true
+    - corepack prepare pnpm@latest --activate
+    - pnpm install --frozen-lockfile --ignore-scripts
+
+# =========================================================
+# BUILD IMAGE
+# =========================================================
+build-image:
+  stage: build
+  image: docker:25
+  extends:
+    - .lark_notification
+
+  before_script:
+    - printf '%s' "$HARBOR_PASSWORD" | docker login "$DOCKER_REGISTRY" -u "$HARBOR_USER" --password-stdin
+
+  script:
+    - docker build -t "$IMAGE_TAG" .
+    - docker tag "$IMAGE_TAG" "$DOCKER_REGISTRY/$IMAGE_NAME:develop"
+    - docker push "$IMAGE_TAG"
+    - docker push "$DOCKER_REGISTRY/$IMAGE_NAME:develop"
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# =========================================================
+# DEPLOY BASE
+# =========================================================
+.deploy_base:
+  stage: deploy
+  image: alpine:3.20
+
+  extends:
+    - .lark_notification
+
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - printf '%s' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - |
+      ssh "$DEPLOY_SERVER_USER@$DEPLOY_SERVER_IP" "
+        set -e
+
+        printf '%s' '$HARBOR_PASSWORD' | docker login '$DOCKER_REGISTRY' -u '$HARBOR_USER' --password-stdin
+
+        docker pull '$IMAGE_TAG'
+
+        docker stop flash-pick-frontend || true
+        docker rm flash-pick-frontend || true
+
+        docker run -d \
+          --name flash-pick-frontend \
+          --restart unless-stopped \
+          -p 3003:3000 \
+          '$IMAGE_TAG'
+
+        docker image prune -f
+      "
+
+# =========================================================
+# STAGING DEPLOY
+# =========================================================
+deploy-staging:
+  extends:
+    - .deploy_base
+
+  variables:
+    DEPLOY_DIR: "$STAGING_DEPLOY_DIR"
+
+    DEPLOY_SSH_KEY: "$STAGING_SSH_PRIVATE_KEY"
+    DEPLOY_SSH_KNOWN_HOSTS: "$STAGING_SSH_KNOWN_HOSTS"
+
+    DEPLOY_SERVER_USER: "$STAGING_SERVER_USER"
+    DEPLOY_SERVER_IP: "$STAGING_SERVER_IP"
+
+  environment:
+    name: staging
+
+  resource_group: staging
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# =========================================================
+# PRODUCTION DEPLOY
+# =========================================================
+deploy-prod:
+  extends:
+    - .deploy_base
+
+  variables:
+    DEPLOY_DIR: "$PROD_DEPLOY_DIR"
+
+    DEPLOY_SSH_KEY: "$PROD_SSH_PRIVATE_KEY"
+    DEPLOY_SSH_KNOWN_HOSTS: "$PROD_SSH_KNOWN_HOSTS"
+
+    DEPLOY_SERVER_USER: "$PROD_SERVER_USER"
+    DEPLOY_SERVER_IP: "$PROD_SERVER_IP"
+
+  environment:
+    name: production
+
+  resource_group: production
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
