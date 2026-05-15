@@ -53,9 +53,9 @@ const SaleTimeSlots = () => {
 
   if (isLoading) {
     return (
-      <div className='flex items-center gap-6 overflow-x-auto scrollbar-hide xl:pt-4 h-[60px] xl:h-[100px]'>
+      <div className='flex items-center xl:pt-4 h-[60px] xl:h-[100px]'>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className='min-w-[80px] xl:min-w-[280px] h-12 bg-gray-100 animate-pulse rounded-lg' />
+          <div key={i} className='flex-1 h-12 bg-gray-100 animate-pulse rounded-lg mx-1' />
         ))}
       </div>
     )
@@ -64,17 +64,17 @@ const SaleTimeSlots = () => {
   return (
     <nav className='pt-2' aria-label='Flash Sale Time Slots'>
       <div className='relative border-b border-(--color-border-1)'>
-        {/* Scrollable Container */}
-        <div className='flex min-w-full items-stretch gap-6 h-full overflow-x-auto scrollbar-hide xl:pt-4'>
+        {/* Equal-width Container */}
+        <div className='flex w-full items-stretch h-full xl:pt-4'>
           {timeSlots.map((tab) => {
             const isActive = tab.key === activeTab
 
             return (
-              <div className='relative' key={tab.key}>
+              <div className='relative flex-1' key={tab.key}>
                 <button
                   type='button'
                   onClick={() => handleTabChange(tab.key)}
-                  className={`relative text-center cursor-pointer h-full flex flex-col items-center justify-center xl:gap-2 whitespace-nowrap pb-2 xl:pb-4 xl:min-w-[280px] transition-colors focus:outline-none ${
+                  className={`relative text-center cursor-pointer h-full w-full flex flex-col items-center justify-center xl:gap-2 whitespace-nowrap pb-2 xl:pb-4 transition-colors focus:outline-none ${
                     isActive ? 'text-(--color-orange-1)' : 'text-(--color-gray-2)'
                   }`}
                   aria-pressed={isActive}
