@@ -1,18 +1,13 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 
-import { useDebouncedValue } from '@/core/hooks/useDebouncedValue'
 import { useIntersectionObserver } from '@/core/hooks/useIntersectionObserver'
 import { useProductInfiniteQuery } from '@/services/product'
 
-import { useFilterProductStore } from '../store/filterProductStore'
 import { mapApiProductToUi } from '../utils/mapApiProductToUi'
-import { useProductFilterParams } from '../utils/useProductFilterParams'
 import { ProductCardSkeleton } from './ProductCard'
 import ProductsList from './ProductsList'
-
-const FILTER_DEBOUNCE_MS = 300
 
 interface SearchResultsListingProps {
   query: string
@@ -21,21 +16,13 @@ interface SearchResultsListingProps {
 /**
  * SearchResultsListing component
  * Responsibility: Fetch products from `/api/v1/products` for a given
- * search query, applying the same global filter store as the browse listing.
+ * search query. Only passes the `q` parameter — no filter store params.
  */
 const SearchResultsListing = ({
   query,
 }: SearchResultsListingProps) => {
-  const setTotalProducts = useFilterProductStore((s) => s.setTotalProducts)
 
-  const filters = useProductFilterParams(true)
-
-  const params = useMemo(
-    () => ({ ...filters, q: query }),
-    [filters, query],
-  )
-
-  const debouncedParams = useDebouncedValue(params, FILTER_DEBOUNCE_MS)
+  const params = useMemo(() => ({ q: query }), [query])
 
   const {
     data,
@@ -44,7 +31,7 @@ const SearchResultsListing = ({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useProductInfiniteQuery(debouncedParams)
+  } = useProductInfiniteQuery(params)
 
   const loadMoreRef = useIntersectionObserver({
     onIntersect: fetchNextPage,
@@ -56,10 +43,6 @@ const SearchResultsListing = ({
     const items = data?.pages.flatMap((page) => page.data) ?? []
     return items.map(mapApiProductToUi)
   }, [data])
-
-  useEffect(() => {
-    setTotalProducts(products.length)
-  }, [products.length, setTotalProducts])
 
   if (!query.trim()) {
     return (

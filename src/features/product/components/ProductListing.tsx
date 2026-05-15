@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { useDebouncedValue } from '@/core/hooks/useDebouncedValue'
 import { useIntersectionObserver } from '@/core/hooks/useIntersectionObserver'
 import { useProductInfiniteQuery } from '@/services/product'
 
-import { useFilterProductStore } from '../store/filterProductStore'
 import { mapApiProductToUi } from '../utils/mapApiProductToUi'
 import { useProductFilterParams } from '../utils/useProductFilterParams'
 import { ProductCardSkeleton } from './ProductCard'
@@ -21,7 +20,6 @@ const FILTER_DEBOUNCE_MS = 300
  *                 Pass false for unfiltered listings (e.g. "Gợi ý sản phẩm").
  */
 const ProductListing = ({ isFilter = true }: { isFilter?: boolean } = {}) => {
-  const setTotalProducts = useFilterProductStore((s) => s.setTotalProducts)
 
   const filters = useProductFilterParams(isFilter)
   const debouncedFilters = useDebouncedValue(filters, FILTER_DEBOUNCE_MS)
@@ -45,10 +43,6 @@ const ProductListing = ({ isFilter = true }: { isFilter?: boolean } = {}) => {
     const items = data?.pages.flatMap((page) => page.data) ?? []
     return items.map(mapApiProductToUi)
   }, [data])
-
-  useEffect(() => {
-    if (isFilter) setTotalProducts(products.length)
-  }, [products.length, setTotalProducts, isFilter])
 
   if (isLoading) {
     return (

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useFlashSaleSessionsQuery } from '@/services/flash-sale'
 import { useFilterProductStore } from '../store/filterProductStore'
 
@@ -10,6 +11,7 @@ interface TimeSlot {
   key: string
   title: string
   subtitle?: string
+  productCount: number
 }
 
 /**
@@ -19,18 +21,30 @@ interface TimeSlot {
  */
 const SaleTimeSlots = () => {
   // --- Hooks ---
-  const { activeTab, setActiveTab } = useFilterProductStore()
+  const { activeTab, setActiveTab, setTotalProducts } = useFilterProductStore()
   const { data: sessionResponse, isLoading } = useFlashSaleSessionsQuery({ limit: 10 })
 
   // --- Derived State ---
+  const totalProductCount = sessionResponse?.totalProductCount ?? 0
+
   const timeSlots: TimeSlot[] = [
-    { key: 'all', title: 'Tất cả' },
+    { key: 'all', title: 'Tất cả', productCount: totalProductCount },
     ...(sessionResponse?.data?.map((session) => ({
       key: session.promotionId,
       title: session.name,
-      subtitle: session.isCurrentlyActive ? 'Đang diễn ra' : 'Sắp diễn ra',
+      subtitle: session.statusText,
+      productCount: session.productCount,
     })) || []),
   ]
+
+  // Sync productCount to global store when active tab changes
+  useEffect(() => {
+    const activeSlot = timeSlots.find((s) => s.key === activeTab)
+    if (activeSlot) {
+      setTotalProducts(activeSlot.productCount)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, sessionResponse])
 
   // --- Handlers ---
   const handleTabChange = (key: string) => {
@@ -99,3 +113,4 @@ const SaleTimeSlots = () => {
 }
 
 export default SaleTimeSlots
+

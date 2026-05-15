@@ -5,6 +5,7 @@ export interface FlashSaleSession {
   flashSaleStart: string;
   flashSaleEnd: string;
   isCurrentlyActive: boolean;
+  statusText: string;
   productCount: number;
 }
 
@@ -18,4 +19,5 @@ export interface FlashSaleSessionsResponse {
   message: string;
   data: FlashSaleSession[];
   total: number;
+  totalProductCount: number;
 }
