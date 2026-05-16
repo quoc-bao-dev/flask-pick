@@ -2,12 +2,16 @@
 
 import { useMemo } from 'react'
 
+import { useDebouncedValue } from '@/core/hooks/useDebouncedValue'
 import { useIntersectionObserver } from '@/core/hooks/useIntersectionObserver'
 import { useProductInfiniteQuery } from '@/services/product'
 
 import { mapApiProductToUi } from '../utils/mapApiProductToUi'
+import { useProductFilterParams } from '../utils/useProductFilterParams'
 import { ProductCardSkeleton } from './ProductCard'
 import ProductsList from './ProductsList'
+
+const FILTER_DEBOUNCE_MS = 300
 
 interface SearchResultsListingProps {
   query: string
@@ -16,13 +20,20 @@ interface SearchResultsListingProps {
 /**
  * SearchResultsListing component
  * Responsibility: Fetch products from `/api/v1/products` for a given
- * search query. Only passes the `q` parameter — no filter store params.
+ * search query, applying the same global filter store as the browse listing.
  */
 const SearchResultsListing = ({
   query,
 }: SearchResultsListingProps) => {
 
-  const params = useMemo(() => ({ q: query }), [query])
+  const filters = useProductFilterParams(true)
+
+  const params = useMemo(
+    () => ({ ...filters, q: query }),
+    [filters, query],
+  )
+
+  const debouncedParams = useDebouncedValue(params, FILTER_DEBOUNCE_MS)
 
   const {
     data,
@@ -31,7 +42,7 @@ const SearchResultsListing = ({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useProductInfiniteQuery(params)
+  } = useProductInfiniteQuery(debouncedParams)
 
   const loadMoreRef = useIntersectionObserver({
     onIntersect: fetchNextPage,

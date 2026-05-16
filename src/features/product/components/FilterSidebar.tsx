@@ -1,15 +1,13 @@
 'use client'
 
+import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
+import { useDiscountPercentsQuery } from '@/services/discount-percent'
+import { useDiscountTypesQuery } from '@/services/discount-type'
 import { useFilterProductStore } from '../store/filterProductStore'
+import { BrandFilter } from './BrandFilter'
 import { FilterCheckboxGroup } from './FilterCheckboxGroup'
 import { FilterRadioGroup } from './FilterRadioGroup'
 import { PriceRangeFilter } from './PriceRangeFilter'
-import { BrandFilter } from './BrandFilter'
-import { SparkleIcon } from '@/components/icons/SparkleIcon'
-import { BalanceIcon } from '@/components/icons/BalanceIcon'
-import { StarSmallIcon } from '@/components/icons/StarSmallIcon'
-import { useDiscountTypesQuery } from '@/services/discount-type'
-import { useDiscountPercentsQuery } from '@/services/discount-percent'
 
 /**
  * FilterSidebar component
@@ -90,12 +88,6 @@ const FilterSidebar = () => {
             label: type.label,
             tooltip: type.description,
             count: 69, // Mock count for now
-            // icon:
-            //   type.code === 'lower_than_history' ? (
-            //     <SparkleIcon className='h-4 w-4' />
-            //   ) : type.code === 'price_unchanged' ? (
-            //     <BalanceIcon className='h-4 w-4' />
-            //   ) : undefined,
           })) || []
         }
         selectedValues={discountTypes}
@@ -116,15 +108,6 @@ const FilterSidebar = () => {
         onChange={(key: string) => toggleFilter(discountPercentages, setDiscountPercentages, key)}
       />
 
-
-      {/* 5. Apply Button */}
-      <button
-        type='button'
-        onClick={handleApplyFilter}
-        className='w-full px-4 py-3 bg-[#F15024] rounded-xl text-[15px] font-bold text-white hover:bg-(--color-orange-1)/90 transition-all shadow-md active:scale-[0.98]'
-      >
-        Áp dụng
-      </button>
 
       <FilterCheckboxGroup
         title='Shop'

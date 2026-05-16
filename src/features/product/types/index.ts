@@ -47,4 +47,5 @@ export interface ProductFilterUiState {
   isDiscountFilterOpen: boolean;
   isTypeFilterOpen: boolean;
   isMobileSearchOpen: boolean;
+  openFilterWithCategory: boolean;
 }

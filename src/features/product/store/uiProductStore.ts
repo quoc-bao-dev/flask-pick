@@ -9,6 +9,7 @@ interface ProductFilterUiActions {
   setIsDiscountFilterOpen: (isOpen: boolean) => void
   setIsTypeFilterOpen: (isOpen: boolean) => void
   setIsMobileSearchOpen: (isOpen: boolean) => void
+  setOpenFilterWithCategory: (open: boolean) => void
   closeAllFilters: () => void
 }
 
@@ -17,6 +18,7 @@ const initialUiState: ProductFilterUiState = {
   isDiscountFilterOpen: false,
   isTypeFilterOpen: false,
   isMobileSearchOpen: false,
+  openFilterWithCategory: false,
 }
 
 /**
@@ -33,6 +35,8 @@ export const useUiProductStore = create<ProductFilterUiState & ProductFilterUiAc
     setIsTypeFilterOpen: (isOpen) => set({ isTypeFilterOpen: isOpen }, false, 'ui/setIsTypeFilterOpen'),
     setIsMobileSearchOpen: (isOpen) =>
       set({ isMobileSearchOpen: isOpen }, false, 'ui/setIsMobileSearchOpen'),
+    setOpenFilterWithCategory: (open) =>
+      set({ openFilterWithCategory: open }, false, 'ui/setOpenFilterWithCategory'),
     closeAllFilters: () => set(initialUiState, false, 'ui/closeAllFilters'),
   })),
 )

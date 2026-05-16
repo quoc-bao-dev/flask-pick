@@ -36,7 +36,10 @@ const DesktopSearch = () => {
     const saved = localStorage.getItem('fp_recent_searches')
     if (saved) {
       try {
-        setRecentSearches(JSON.parse(saved))
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed.slice(0, 10))
+        }
       } catch (e) {
         console.error('Failed to parse recent searches', e)
       }

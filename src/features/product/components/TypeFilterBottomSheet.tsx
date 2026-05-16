@@ -1,9 +1,10 @@
 'use client'
 
 import Checkbox from '@/components/ui/Checkbox'
-import BaseBottomSheet from './BaseBottomSheet'
-
+import Tooltip from '@/components/ui/Tooltip'
+import { useDiscountTypesQuery } from '@/services/discount-type'
 import { useEffect, useState } from 'react'
+import BaseBottomSheet from './BaseBottomSheet'
 
 interface TypeFilterBottomSheetProps {
   isOpen: boolean
@@ -13,11 +14,9 @@ interface TypeFilterBottomSheetProps {
   onReset: () => void
 }
 
-const TYPE_OPTIONS = [
-  { key: 'cheaper', label: 'Rẻ hơn lịch sử', count: 69 },
-  { key: 'stable', label: 'Giá không đổi', count: 69 },
-]
-
+/**
+ * TypeFilterBottomSheet component (LOẠI GIẢM GIÁ)
+ */
 const TypeFilterBottomSheet = ({
   isOpen,
   initialSelected = [],
@@ -25,6 +24,10 @@ const TypeFilterBottomSheet = ({
   onApply,
   onReset,
 }: TypeFilterBottomSheetProps) => {
+  // --- Hooks ---
+  const { data: discountTypes } = useDiscountTypesQuery()
+
+  // --- State ---
   const [selectedTypes, setSelectedTypes] = useState<string[]>(initialSelected)
 
   // Sync state when opening with fresh store values
@@ -72,18 +75,22 @@ const TypeFilterBottomSheet = ({
         </>
       }
     >
-      <div className='space-y-3'>
-        {TYPE_OPTIONS.map((option) => (
-          <label key={option.key} className='flex items-center justify-between cursor-pointer'>
+      <div className='space-y-4 pt-2 pb-4'>
+        {discountTypes?.map((option) => (
+          <label
+            key={option.code}
+            className='flex items-center justify-between cursor-pointer group'
+          >
             <div className='flex items-center gap-2'>
-              <span className='text-[14px] font-semibold text-(--color-text-strong)'>
-                {option.label}
-              </span>
-              <span className='text-[14px] text-gray-3'>({option.count})</span>
+              <Tooltip content={option.description}>
+                <span className='text-[15px] font-medium text-(--color-text-strong) underline decoration-wavy decoration-[#8796AF]/50 decoration-1 underline-offset-4 group-hover:text-(--color-orange-1) transition-colors'>
+                  {option.label}
+                </span>
+              </Tooltip>
             </div>
             <Checkbox
-              checked={selectedTypes.includes(option.key)}
-              onChange={() => toggleType(option.key)}
+              checked={selectedTypes.includes(option.code)}
+              onChange={() => toggleType(option.code)}
             />
           </label>
         ))}

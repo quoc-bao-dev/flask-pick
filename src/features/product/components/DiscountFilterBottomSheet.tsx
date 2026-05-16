@@ -1,8 +1,7 @@
 'use client'
 
 import Checkbox from '@/components/ui/Checkbox'
-
-import { useDiscountTypesQuery } from '@/services/discount-type'
+import { useDiscountPercentsQuery } from '@/services/discount-percent'
 import { useEffect, useState } from 'react'
 import BaseBottomSheet from './BaseBottomSheet'
 
@@ -14,6 +13,9 @@ interface DiscountFilterBottomSheetProps {
   onReset: () => void
 }
 
+/**
+ * DiscountFilterBottomSheet component (% GIẢM GIÁ)
+ */
 const DiscountFilterBottomSheet = ({
   isOpen,
   initialSelected = [],
@@ -22,7 +24,7 @@ const DiscountFilterBottomSheet = ({
   onReset,
 }: DiscountFilterBottomSheetProps) => {
   // --- Hooks ---
-  const { data: discountTypes } = useDiscountTypesQuery()
+  const { data: discountPercents } = useDiscountPercentsQuery()
 
   // --- State ---
   const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>(initialSelected)
@@ -72,12 +74,16 @@ const DiscountFilterBottomSheet = ({
         </>
       }
     >
-      <div className='space-y-3'>
-        {discountTypes?.map((option) => (
-          <label key={option.code} className='flex items-center justify-between cursor-pointer'>
+      <div className='space-y-4 pt-2 pb-4'>
+        {discountPercents?.data.map((option) => (
+          <label
+            key={option.code}
+            className='flex items-center justify-between cursor-pointer group'
+          >
             <div className='flex items-center gap-2'>
-              <span className='text-[14px] text-(--color-text-strong)'>{option.label}</span>
-              <span className='text-[14px] text-gray-3'>(69)</span>
+              <span className='text-[15px] font-medium text-(--color-text-strong) group-hover:text-(--color-orange-1) transition-colors'>
+                {option.label}
+              </span>
             </div>
             <Checkbox
               checked={selectedDiscounts.includes(option.code)}

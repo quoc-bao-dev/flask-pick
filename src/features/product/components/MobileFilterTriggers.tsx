@@ -38,10 +38,16 @@ const FilterTriggerButton = ({
 
 const MobileFilterTriggers = () => {
   // --- Hooks ---
-  const { setIsFilterOpen, setIsDiscountFilterOpen, setIsTypeFilterOpen } = useUiProductStore()
+  const { setIsFilterOpen, setIsDiscountFilterOpen, setIsTypeFilterOpen, setOpenFilterWithCategory } = useUiProductStore()
 
   // --- Handlers ---
   const handleOpenMainFilter = () => {
+    setOpenFilterWithCategory(false)
+    setIsFilterOpen(true)
+  }
+
+  const handleOpenCategoryFilter = () => {
+    setOpenFilterWithCategory(true)
     setIsFilterOpen(true)
   }
 
@@ -59,24 +65,19 @@ const MobileFilterTriggers = () => {
         {/* Main Filter Icon */}
         <div className='' aria-hidden='true'>
           <div className='flex items-center gap-2 rounded-[10px] bg-white border border-[#DEE4EE] px-[12px] py-[6px] text-[12px] font-medium text-gray-2 whitespace-nowrap transition-colors hover:bg-gray-50'>
-            <FilterIcon size={18} />
+            <FilterIcon size={18}
+              onClick={handleOpenMainFilter}
+            />
           </div>
         </div>
 
         {/* Scrollable Filter Buttons */}
         <div className='flex-1 min-w-0 flex items-center gap-3 overflow-x-auto scrollbar-hide'>
-          {/* Price Filter */}
-          <FilterTriggerButton
-            label='Giá'
-            onClick={handleOpenMainFilter}
-            icon={ArrowUpIcon}
-            ariaLabel='Lọc theo giá'
-          />
 
-          {/* Category Filter */}
+          {/* Category Filter - opens directly to category drawer */}
           <FilterTriggerButton
             label='Danh mục'
-            onClick={handleOpenMainFilter}
+            onClick={handleOpenCategoryFilter}
             icon={ChevronDownIcon}
             ariaLabel='Lọc theo danh mục'
           />

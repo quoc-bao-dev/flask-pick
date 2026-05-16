@@ -100,7 +100,7 @@ const CategoryFilter = () => {
   }
 
   return (
-    <nav className='relative flex items-center' aria-label='Product Categories'>
+    <nav className='hidden lg:flex relative items-center' aria-label='Product Categories'>
       {/* Scrollable Category List */}
       <div
         ref={categoryScrollRef}

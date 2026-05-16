@@ -66,7 +66,7 @@ export const SearchSuggestionsContent = ({
               )}
             </div>
             <div className='flex flex-wrap gap-2'>
-              {recentSearches.map((term) => {
+              {recentSearches.slice(0, 10).map((term) => {
                 const isActive = currentIndex === activeIndex
                 currentIndex++
                 return (
@@ -74,7 +74,7 @@ export const SearchSuggestionsContent = ({
                     key={term}
                     type='button'
                     onClick={() => onSearch(term)}
-                    className={`px-3 py-1.5 bg-(--color-surface-50) rounded-[10px] text-[12px] text-(--color-text-strong) transition-colors cursor-pointer ${isActive ? 'bg-gray-200/80 text-(--color-orange-1)' : 'hover:bg-gray-200/80'
+                    className={`px-3 py-1.5 bg-(--color-surface-50) rounded-[10px] text-left text-[12px] text-(--color-text-strong) transition-colors cursor-pointer ${isActive ? 'bg-gray-200/80 text-(--color-orange-1)' : 'hover:bg-gray-200/80'
                       }`}
                   >
                     {term}

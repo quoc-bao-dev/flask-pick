@@ -19,9 +19,11 @@ const ProductFilterModals = () => {
     isFilterOpen,
     isDiscountFilterOpen,
     isTypeFilterOpen,
+    openFilterWithCategory,
     setIsFilterOpen,
     setIsDiscountFilterOpen,
     setIsTypeFilterOpen,
+    setOpenFilterWithCategory,
   } = useUiProductStore()
 
   const {
@@ -36,10 +38,12 @@ const ProductFilterModals = () => {
   
   const handleCloseMainFilter = () => {
     setIsFilterOpen(false)
+    setOpenFilterWithCategory(false)
   }
 
   const handleApplyMainFilter = () => {
     setIsFilterOpen(false)
+    setOpenFilterWithCategory(false)
     // Handle global filter apply logic here if needed
   }
 
@@ -59,30 +63,31 @@ const ProductFilterModals = () => {
         onClose={handleCloseMainFilter}
         onApply={handleApplyMainFilter}
         onReset={resetFilters}
+        openWithCategory={openFilterWithCategory}
       />
 
-      {/* 2. Specialized Discount Filter Bottom Sheet */}
+      {/* 2. Specialized Discount Percent Filter Bottom Sheet (% GIẢM GIÁ) */}
       <DiscountFilterBottomSheet
         isOpen={isDiscountFilterOpen}
-        initialSelected={discountTypes}
+        initialSelected={discountPercentages}
         onClose={handleCloseDiscountFilter}
         onApply={(selected) => {
-          setDiscountTypes(selected)
+          setDiscountPercentages(selected)
           setIsDiscountFilterOpen(false)
         }}
-        onReset={() => setDiscountTypes([])}
+        onReset={() => setDiscountPercentages([])}
       />
 
-      {/* 3. Product Type Filter Bottom Sheet */}
+      {/* 3. Product Type Filter Bottom Sheet (LOẠI GIẢM GIÁ) */}
       <TypeFilterBottomSheet
         isOpen={isTypeFilterOpen}
-        initialSelected={discountPercentages} // Assuming "Type" in modal map to percentages or vice versa?
+        initialSelected={discountTypes}
         onClose={handleCloseTypeFilter}
         onApply={(selected) => {
-          setDiscountPercentages(selected)
+          setDiscountTypes(selected)
           setIsTypeFilterOpen(false)
         }}
-        onReset={() => setDiscountPercentages([])}
+        onReset={() => setDiscountTypes([])}
       />
 
       {/* 4. Mobile Search Full-screen Overlay */}
