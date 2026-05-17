@@ -53,7 +53,7 @@ export const PriceDisplayInput = ({
           onChange(rawValue)
         }}
         onKeyDown={handleKeyDown}
-        className='flex-1 w-full min-w-0 px-3 py-2 text-[14px] font-medium text-(--color-text-strong) outline-none pr-8'
+        className='flex-1 w-full min-w-0 px-3 py-2 text-[14px] font-medium text-(--color-text-strong) outline-none'
         placeholder={placeholder}
       />
       {/* Up/Down buttons - only show on hover or focus to keep it clean */}
@@ -65,7 +65,7 @@ export const PriceDisplayInput = ({
           aria-label='Tăng giá'
         >
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         <button
@@ -75,7 +75,7 @@ export const PriceDisplayInput = ({
           aria-label='Giảm giá'
         >
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>

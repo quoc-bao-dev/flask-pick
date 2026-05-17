@@ -53,6 +53,11 @@ export const useFilterProductStore = create<ProductFilterValues & ProductFilterA
     setRatings: (ratings) => set({ ratings }, false, 'product/setRatings'),
     setTotalProducts: (totalProducts) => set({ totalProducts }, false, 'product/setTotalProducts'),
 
-    resetFilters: () => set(initialFilterValues, false, 'product/resetFilters'),
+    resetFilters: () => set((state) => ({ 
+      ...initialFilterValues, 
+      activeTab: state.activeTab, 
+      activeDeal: state.activeDeal,
+      totalProducts: state.totalProducts 
+    }), false, 'product/resetFilters'),
   }))
 );
