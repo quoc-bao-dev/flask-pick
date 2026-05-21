@@ -35,7 +35,7 @@ const CategoryFilter = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useCategoryInfiniteQuery({
-    limit: 20,
+    limit: 50,
   })
 
   const categories = useMemo<CategoryOption[]>(() => {
@@ -57,7 +57,30 @@ const CategoryFilter = () => {
     freeze: isFetchingNextPage,
   })
 
+  const hasScrolledRef = useRef(false)
+
   // --- Effects ---
+
+  // Scroll active category into view on first load
+  useEffect(() => {
+    if (categories.length > 1 && activeCategoryId !== 'all' && !hasScrolledRef.current) {
+      const container = categoryScrollRef.current
+      if (container) {
+        const timer = setTimeout(() => {
+          const activeEl = container.querySelector('[aria-pressed="true"]') as HTMLElement
+          if (activeEl) {
+            activeEl.scrollIntoView({
+              behavior: 'auto',
+              inline: 'center',
+              block: 'nearest',
+            })
+            hasScrolledRef.current = true
+          }
+        }, 100)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [categories, activeCategoryId])
 
   // Handlers for scroll position
   useEffect(() => {
@@ -99,63 +122,62 @@ const CategoryFilter = () => {
     }
   }
 
+  const renderCategoryButton = (category: CategoryOption) => {
+    const isActive = category.id === activeCategoryId
+
+    return (
+      <button
+        key={category.id}
+        type='button'
+        onClick={() => handleCategorySelect(category.id)}
+        className={`relative flex items-center gap-2 rounded-full px-3 py-2 border-[1.5px] transition-all whitespace-nowrap cursor-pointer focus:outline-none ${isActive
+          ? 'border-orange-1 bg-white shadow-sm'
+          : 'border-border-1 bg-white hover:border-border-2'
+          }`}
+        aria-pressed={isActive}
+        title={category.label}
+      >
+        <span className='text-[13px] font-medium text-(--color-text-strong)'>
+          {category.label}
+        </span>
+
+        {isActive && (
+          <span className='absolute -top-1 -right-1'>
+            <svg
+              width='18'
+              height='18'
+              viewBox='0 0 19 19'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              aria-hidden='true'
+            >
+              <rect width='18' height='18' rx='9' fill='#F15024' />
+              <path
+                d='M5.5 9L8 11.5L13 6.5'
+                stroke='white'
+                strokeWidth='1.5'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              />
+            </svg>
+          </span>
+        )}
+      </button>
+    )
+  }
+
   return (
-    <nav className='hidden lg:flex relative items-center' aria-label='Product Categories'>
+    <nav className='hidden lg:flex relative items-center gap-3' aria-label='Product Categories'>
+      {/* Fixed 'Tất cả' Tab */}
+      <div className='shrink-0 pb-2 pt-2 z-10 bg-white'>
+        {categories.length > 0 && renderCategoryButton(categories[0])}
+      </div>
       {/* Scrollable Category List */}
       <div
         ref={categoryScrollRef}
         className='flex items-center gap-3 overflow-x-auto scrollbar-hide pb-2 pt-2 flex-1 outline-none'
       >
-        {categories.map((category) => {
-          const isActive = category.id === activeCategoryId
-
-          return (
-            <button
-              key={category.id}
-              type='button'
-              onClick={() => handleCategorySelect(category.id)}
-              className={`relative flex items-center gap-2 rounded-full px-3 py-2 border-[1.5px] transition-all whitespace-nowrap cursor-pointer focus:outline-none ${isActive
-                ? 'border-orange-1 bg-white shadow-sm'
-                : 'border-border-1 bg-white hover:border-border-2'
-                }`}
-              aria-pressed={isActive}
-              title={category.label}
-            >
-              {/* Category Icon */}
-              {/* <span className='h-5 w-5 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden shrink-0'>
-                <img src={category.icon} alt='' className='h-5 w-5 object-contain' loading='lazy' />
-              </span> */}
-
-              {/* Category Label */}
-              <span className='text-[13px] font-medium text-(--color-text-strong)'>
-                {category.label}
-              </span>
-
-              {/* Active Selection Indicator */}
-              {isActive && (
-                <span className='absolute -top-1 -right-1'>
-                  <svg
-                    width='18'
-                    height='18'
-                    viewBox='0 0 19 19'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                    aria-hidden='true'
-                  >
-                    <rect width='18' height='18' rx='9' fill='#F15024' />
-                    <path
-                      d='M5.5 9L8 11.5L13 6.5'
-                      stroke='white'
-                      strokeWidth='1.5'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                  </svg>
-                </span>
-              )}
-            </button>
-          )
-        })}
+        {categories.slice(1).map((category) => renderCategoryButton(category))}
         {/* Padding for scroll clearance and infinite scroll target */}
         <div ref={loadMoreRef} className='w-[4px] h-[32px] shrink-0'></div>
       </div>

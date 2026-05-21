@@ -1,9 +1,11 @@
 'use client'
 
-import { ArrowUpIcon } from '@/components/icons/ArrowUpIcon'
+import { useMemo } from 'react'
 import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon'
 import { FilterIcon } from '@/components/icons/FilterIcon'
 import { useUiProductStore } from '../store/uiProductStore'
+import { useFilterProductStore } from '../store/filterProductStore'
+import { useCategoryInfiniteQuery } from '@/services/category'
 
 /**
  * MobileFilterTriggers component
@@ -39,6 +41,20 @@ const FilterTriggerButton = ({
 const MobileFilterTriggers = () => {
   // --- Hooks ---
   const { setIsFilterOpen, setIsDiscountFilterOpen, setIsTypeFilterOpen, setOpenFilterWithCategory } = useUiProductStore()
+  const { categoryIds } = useFilterProductStore()
+
+  const activeCategoryId = categoryIds[0]
+  const { data: categoryData } = useCategoryInfiniteQuery({ limit: 20 })
+
+  const categoryLabel = useMemo(() => {
+    if (!activeCategoryId || activeCategoryId === 'all') return 'Danh mục'
+    const pages = categoryData?.pages || []
+    for (const page of pages) {
+      const found = page.data.find((cat) => cat.categoryId === activeCategoryId)
+      if (found) return found.displayName
+    }
+    return 'Danh mục'
+  }, [activeCategoryId, categoryData?.pages])
 
   // --- Handlers ---
   const handleOpenMainFilter = () => {
@@ -76,7 +92,7 @@ const MobileFilterTriggers = () => {
 
           {/* Category Filter - opens directly to category drawer */}
           <FilterTriggerButton
-            label='Danh mục'
+            label={categoryLabel}
             onClick={handleOpenCategoryFilter}
             icon={ChevronDownIcon}
             ariaLabel='Lọc theo danh mục'

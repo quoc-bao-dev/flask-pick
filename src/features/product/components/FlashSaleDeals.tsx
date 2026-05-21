@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import FilterChip from '@/components/common/FilterChip'
 import { usePricePresetQuery } from '@/services/price-preset'
 import { useFilterProductStore } from '../store/filterProductStore'
@@ -26,6 +26,8 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   // --- Hooks ---
   const { activeDeal, setActiveDeal, setPriceRange } = useFilterProductStore()
   const { data: presetData } = usePricePresetQuery()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const hasScrolledRef = useRef(false)
 
   // Build deal options from API data with a leading "Tất cả" tab
   const dealOptions = useMemo(() => {
@@ -43,6 +45,27 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
     return [allTab, ...apiTabs]
   }, [presetData])
 
+  // Scroll active deal into view on first load
+  useEffect(() => {
+    if (dealOptions.length > 1 && activeDeal !== 'all' && !hasScrolledRef.current) {
+      const container = scrollRef.current
+      if (container) {
+        const timer = setTimeout(() => {
+          const activeEl = container.querySelector('[aria-pressed="true"]') as HTMLElement
+          if (activeEl) {
+            activeEl.scrollIntoView({
+              behavior: 'auto',
+              inline: 'center',
+              block: 'nearest',
+            })
+            hasScrolledRef.current = true
+          }
+        }, 100)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [dealOptions, activeDeal])
+
   // --- Handlers ---
   const handleDealChange = (code: string) => {
     setActiveDeal(code)
@@ -54,20 +77,18 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
   }
 
   // Common Button Rendering
-  const renderButtons = () => {
-    return dealOptions.map((option) => {
-      const isActive = option.code === activeDeal
+  const renderOption = (option: { code: string; label: string; minPrice: number; maxPrice: number }) => {
+    const isActive = option.code === activeDeal
 
-      return (
-        <FilterChip
-          key={option.code}
-          label={option.label}
-          isActive={isActive}
-          onClick={() => handleDealChange(option.code)}
-          variant={variant}
-        />
-      )
-    })
+    return (
+      <FilterChip
+        key={option.code}
+        label={option.label}
+        isActive={isActive}
+        onClick={() => handleDealChange(option.code)}
+        variant={variant}
+      />
+    )
   }
 
   // --- Render Layouts ---
@@ -77,7 +98,7 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
     return (
       <div className='flex items-center gap-3' aria-label='Flash Sale Deals (Desktop)'>
         <span className='text-[16px] font-medium text-(--color-gray-2) uppercase'>DEAL</span>
-        <div className='flex items-center gap-3'>{renderButtons()}</div>
+        <div className='flex items-center gap-3'>{dealOptions.map(renderOption)}</div>
       </div>
     )
   }
@@ -89,12 +110,19 @@ const FlashSaleDeals = ({ variant = 'mobile' }: FlashSaleDealsProps) => {
         {/* Label */}
         <span className='uppercase text-[16px]'>DEAL</span>
 
-        {/* Scrollable Container */}
-        <div className='flex-1 min-w-0'>
-          <div className='flex w-max items-center gap-3 scrollbar-hide max-w-full overflow-x-auto pb-1'>
-            {renderButtons()}
-          </div>
+        {/* Fixed 'Tất cả' Tab */}
+        <div className='shrink-0'>
+          {renderOption(dealOptions[0])}
         </div>
+
+        {/* Scrollable Container */}
+        {dealOptions.length > 1 && (
+          <div className='flex-1 min-w-0'>
+            <div ref={scrollRef} className='flex w-max items-center gap-3 scrollbar-hide max-w-full overflow-x-auto pb-1'>
+              {dealOptions.slice(1).map(renderOption)}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )
